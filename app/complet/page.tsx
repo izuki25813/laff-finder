@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-// ⚠️ SUBSTITUA PELA URL NOVA DO SEU APPS SCRIPT
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxieL9cajz7hqT4HrMoF4ciN4ElvkAgqN-xGbVvudZexa1s_3cMZxkTZ0wvlgEpXwaxeA/exec"; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywdkprIPjco6PAB-m9Crnx-fLFxwzRSEoWt9ydPj5Z1qQJzYhIscz83ZXOiYFC4aD8gg/exec"; 
 
 export default function CompletPage() {
   const [activeTab, setActiveTab] = useState<"disponivel" | "precisando">("disponivel");
@@ -13,7 +12,6 @@ export default function CompletPage() {
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
 
-  // Estados do Formulário
   const [form, setForm] = useState({
     nick: "", contato: "", hInicio: "", hFim: "", 
     qtd: "1", funcao: "", desc: "", pin: ""
@@ -28,7 +26,6 @@ export default function CompletPage() {
       const res = await fetch(`${SCRIPT_URL}?sheet=COMPLETS`);
       const data = await res.json();
       
-      // Filtra posts com menos de 5 horas
       const cincoHorasEmMs = 5 * 60 * 60 * 1000;
       const agora = Date.now();
       
@@ -68,7 +65,7 @@ export default function CompletPage() {
       });
       setMsg("✅ Postado com sucesso!");
       setForm({ nick: "", contato: "", hInicio: "", hFim: "", qtd: "1", funcao: "", desc: "", pin: "" });
-      fetchPosts(); // Recarrega a lista
+      fetchPosts();
     } catch (error) {
       setMsg("❌ Erro ao postar.");
     } finally {
@@ -176,15 +173,15 @@ export default function CompletPage() {
             <button disabled={submitting} className="w-full bg-yellow-400 text-black font-black py-4 rounded-xl hover:bg-yellow-300 transition disabled:bg-zinc-700 disabled:text-zinc-500">
               {submitting ? "Publicando..." : "🚀 Publicar Anúncio"}
             </button>
-            {msg && <p className="text-center font-bold">{msg}</p>}
+            {msg && <p className="text-center font-bold text-green-400">{msg}</p>}
           </form>
         </div>
 
         {/* FEED DE POSTS */}
-        <h2 className="text-2xl font-black mb-4 text-white"> Anúncios Ativos</h2>
+        <h2 className="text-2xl font-black mb-4 text-white">📢 Anúncios Ativos</h2>
         
         {loading ? (
-          <p className="text-zinc-500 text-center py-10">Carregando anúncios...</p>
+          <p className="text-zinc-500 text-center py-10 animate-pulse">Carregando anúncios...</p>
         ) : posts.length === 0 ? (
           <p className="text-zinc-500 text-center py-10">Nenhum anúncio ativo no momento. Seja o primeiro!</p>
         ) : (
@@ -194,7 +191,7 @@ export default function CompletPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`text-xs font-black px-2 py-1 rounded ${post.Tipo === 'disponivel' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
-                      {post.Tipo === 'disponivel' ? '🟢 DISPONÍVEL' : '🔴 PRECISANDO'}
+                      {post.Tipo === 'disponivel' ? '🟢 DISPONÍVEL' : ' PRECISANDO'}
                     </span>
                     <h3 className="text-xl font-black text-white">{post.Nick}</h3>
                   </div>
@@ -204,7 +201,7 @@ export default function CompletPage() {
                   ) : (
                     <div className="text-zinc-300 text-sm space-y-1">
                       <p>👥 Precisa de: <span className="text-white font-bold">{post.QtdPlayers} player(s)</span> para a função <span className="text-white font-bold">{post.FuncaoPrecisa}</span></p>
-                      <p> Horário: <span className="text-white font-bold">{post.HorarioInicio}</span></p>
+                      <p>⏰ Horário: <span className="text-white font-bold">{post.HorarioInicio}</span></p>
                       {post.Descricao && <p className="italic text-zinc-400 mt-2">"{post.Descricao}"</p>}
                     </div>
                   )}
