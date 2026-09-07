@@ -11,6 +11,7 @@ export default function CompletPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
+  const [players, setPlayers] = useState<any[]>([]);
 
   const [form, setForm] = useState({
     nick: "", contato: "", hInicio: "", hFim: "", 
@@ -19,6 +20,7 @@ export default function CompletPage() {
 
   useEffect(() => {
     fetchPosts();
+    fetchPlayers();
   }, []);
 
   const fetchPosts = async () => {
@@ -39,6 +41,35 @@ export default function CompletPage() {
       console.error("Erro ao buscar posts:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPlayers = async () => {
+    try {
+      const res = await fetch(SCRIPT_URL);
+      const data = await res.json();
+      setPlayers(data);
+    } catch (error) {
+      console.error("Erro ao buscar jogadores:", error);
+    }
+  };
+
+  // Quando o usuário digita o Nick, busca automaticamente os dados
+  const handleNickChange = (nick: string) => {
+    setForm({...form, nick});
+    
+    const playerEncontrado = players.find(p => 
+      p.Nick?.toLowerCase() === nick.toLowerCase()
+    );
+
+    if (playerEncontrado) {
+      // Preenche automaticamente função e contato
+      setForm(prev => ({
+        ...prev,
+        nick,
+        funcao: playerEncontrado.FuncaoPrincipal || prev.funcao,
+        contato: playerEncontrado.Contato || prev.contato
+      }));
     }
   };
 
@@ -96,13 +127,20 @@ export default function CompletPage() {
   };
 
   const formatWhatsAppLink = (phone: string) => {
-    // Se for Discord ou Instagram, não tenta formatar como link de WhatsApp
-    if (phone.toLowerCase().includes('discord') || phone.toLowerCase().includes('instagram') || phone.includes('@')) {
-      return "#"; 
-    }
+    if (!phone) return "#";
     const numbers = phone.replace(/\D/g, '');
     const fullNumber = numbers.startsWith('55') ? numbers : '55' + numbers;
     return `https://wa.me/${fullNumber}`;
+  };
+
+  const formatHorario = (horario: string) => {
+    if (!horario) return "";
+    // Se for timestamp ISO, extrai só a hora
+    if (horario.includes('T')) {
+      const date = new Date(horario);
+      return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+    return horario;
   };
 
   return (
@@ -146,15 +184,15 @@ export default function CompletPage() {
               <input 
                 required 
                 value={form.nick} 
-                onChange={e => setForm({...form, nick: e.target.value})} 
-                placeholder="Seu Nick *" 
+                onChange={e => handleNickChange(e.target.value)} 
+                placeholder="Seu Nick (puxa dados do cadastro) *" 
                 className="bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none" 
               />
               <input 
                 required 
                 value={form.contato} 
                 onChange={e => setForm({...form, contato: e.target.value})} 
-                placeholder="WhatsApp, Discord ou Instagram *" 
+                placeholder="WhatsApp (ex: 11999999999) *" 
                 className="bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none" 
               />
             </div>
@@ -169,7 +207,7 @@ export default function CompletPage() {
                 >
                   <option value="">Sua Função Principal *</option>
                   <option>🟢 Rush 1</option>
-                  <option>🟢 Rush 2</option>
+                  <option> Rush 2</option>
                   <option>🔵 Granadeiro</option>
                   <option>🟡 Suporte</option>
                   <option>🟣 IGL (Capitão)</option>
@@ -261,34 +299,41 @@ export default function CompletPage() {
             {posts.map((post, index) => (
               <div key={index} className={`rounded-xl border p-5 flex flex-col md:flex-row justify-between gap-4 ${post.Tipo === 'disponivel' ? 'bg-green-950/20 border-green-900/50' : 'bg-red-950/20 border-red-900/50'}`}>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <span className={`text-xs font-black px-2 py-1 rounded ${post.Tipo === 'disponivel' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
                       {post.Tipo === 'disponivel' ? '🟢 DISPONÍVEL' : '🔴 PRECISANDO'}
                     </span>
                     <h3 className="text-xl font-black text-white">{post.Nick}</h3>
-                    {post.FuncaoPrecisa && <span className="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded font-bold">{post.FuncaoPrecisa}</span>}
+                    {post.FuncaoPrecisa && (
+                      <span className="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded font-bold">
+                        {post.FuncaoPrecisa}
+                      </span>
+                    )}
                   </div>
                   
                   {post.Tipo === 'disponivel' ? (
-                    <p className="text-zinc-300 text-sm">⏰ Disponível de <span className="text-white font-bold">{post.HorarioInicio}</span> até <span className="text-white font-bold">{post.HorarioFim}</span></p>
+                    <p className="text-zinc-300 text-sm">
+                      ⏰ Disponível de <span className="text-white font-bold">{formatHorario(post.HorarioInicio)}</span> até <span className="text-white font-bold">{formatHorario(post.HorarioFim)}</span>
+                    </p>
                   ) : (
                     <div className="text-zinc-300 text-sm space-y-1">
                       <p>👥 Precisa de: <span className="text-white font-bold">{post.QtdPlayers} player(s)</span></p>
-                      <p>⏰ Horário: <span className="text-white font-bold">{post.HorarioInicio}</span></p>
+                      <p>⏰ Horário: <span className="text-white font-bold">{formatHorario(post.HorarioInicio)}</span></p>
                       {post.Descricao && <p className="italic text-zinc-400 mt-2">"{post.Descricao}"</p>}
                     </div>
                   )}
                 </div>
 
                 <div className="flex flex-col gap-2 min-w-[150px]">
-                  {post.Contato && !post.Contato.includes('#') ? (
-                    <a href={formatWhatsAppLink(post.Contato)} target="_blank" className="block w-full bg-green-600 hover:bg-green-500 text-white text-center font-bold py-2 rounded-lg text-sm transition">
+                  {post.Contato && (
+                    <a 
+                      href={formatWhatsAppLink(post.Contato)} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full bg-green-600 hover:bg-green-500 text-white text-center font-bold py-2 rounded-lg text-sm transition"
+                    >
                       💬 Chamar no Zap
                     </a>
-                  ) : (
-                    <div className="block w-full bg-zinc-700 text-zinc-300 text-center font-bold py-2 rounded-lg text-sm cursor-default">
-                      📋 Contato: {post.Contato}
-                    </div>
                   )}
                   <button onClick={() => handleDelete(post.Nick)} className="w-full bg-zinc-800 hover:bg-red-600 text-zinc-400 hover:text-white text-center font-bold py-2 rounded-lg text-xs transition">
                     🗑️ Apagar meu post

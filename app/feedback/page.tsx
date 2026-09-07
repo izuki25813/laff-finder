@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 
 // ⚠️ COLE AQUI A NOVA URL DO SEU APPS SCRIPT
-const SCRIPT_URL = "COLE_A_NOVA_URL_AQUI"; 
+const SCRIPT_URL = "Cconst SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywdkprIPjco6PAB-m9Crnx-fLFxwzRSEoWt9ydPj5Z1qQJzYhIscz83ZXOiYFC4aD8gg/exec";; 
 
 export default function FeedbackPage() {
   const [tipo, setTipo] = useState("Sugestão");
