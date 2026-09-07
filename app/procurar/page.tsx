@@ -3,11 +3,9 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-// ✅ ID DA SUA PLANILHA
 const SHEET_ID = "1jmohWo0KBC_HDW7j47efTMoVhdUG0dFdE3_c7oG-zmE";
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
-// Função robusta para ler CSV do Google Sheets
 const parseCSV = (str: string) => {
   const arr: string[][] = [];
   let quote = false;
@@ -39,7 +37,6 @@ export default function ProcurarPage() {
         const response = await fetch(CSV_URL);
         const text = await response.text();
         const rows = parseCSV(text);
-        
         const headers = rows[0];
         const data = [];
 
@@ -62,11 +59,21 @@ export default function ProcurarPage() {
     fetchData();
   }, []);
 
+  const formatWhatsAppLink = (phone: string) => {
+    // Remove tudo que não é número
+    const numbers = phone.replace(/\D/g, '');
+    // Adiciona 55 se não tiver (código do Brasil)
+    const fullNumber = numbers.startsWith('55') ? numbers : '55' + numbers;
+    return `https://wa.me/${fullNumber}`;
+  };
+
   const filteredPlayers = players.filter((p) => {
     const matchFuncao = filtroFuncao ? p.FuncaoPrincipal?.includes(filtroFuncao) : true;
     const matchPlataforma = filtroPlataforma ? p.Plataforma?.includes(filtroPlataforma) : true;
     return matchFuncao && matchPlataforma;
   });
+
+  const roles = ["Rush 1", "Rush 2", "Granadeiro", "Suporte", "IGL (Capitão)"];
 
   return (
     <main className="min-h-screen bg-black text-white p-6 md:p-10">
@@ -80,23 +87,30 @@ export default function ProcurarPage() {
           Encontre o player ideal para completar sua line na LAFF.
         </p>
 
-        {/* FILTROS */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-8 flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <label className="block text-xs font-bold text-zinc-500 mb-1 uppercase">Filtrar por Função</label>
-            <select 
-              value={filtroFuncao} 
-              onChange={(e) => setFiltroFuncao(e.target.value)}
-              className="w-full bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
+        {/*  FILTRO DE MATCH RÁPIDO */}
+        <div className="mb-8">
+          <h2 className="text-sm font-bold text-yellow-400 uppercase tracking-wider mb-3">🎯 O que você precisa no seu time?</h2>
+          <div className="flex flex-wrap gap-2">
+            <button 
+              onClick={() => setFiltroFuncao("")}
+              className={`px-4 py-2 rounded-lg font-bold text-sm transition ${filtroFuncao === "" ? "bg-yellow-400 text-black" : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"}`}
             >
-              <option value="">Todas as funções</option>
-              <option> Rush 1</option>
-              <option>🟢 Rush 2</option>
-              <option>🔵 Granadeiro</option>
-              <option>🟡 Suporte</option>
-              <option>🟣 IGL (Capitão)</option>
-            </select>
+              Ver todos
+            </button>
+            {roles.map((role) => (
+              <button 
+                key={role}
+                onClick={() => setFiltroFuncao(role)}
+                className={`px-4 py-2 rounded-lg font-bold text-sm transition ${filtroFuncao === role ? "bg-yellow-400 text-black" : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"}`}
+              >
+                Preciso de {role}
+              </button>
+            ))}
           </div>
+        </div>
+
+        {/* FILTROS CLÁSSICOS */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-8 flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <label className="block text-xs font-bold text-zinc-500 mb-1 uppercase">Filtrar por Plataforma</label>
             <select 
@@ -126,7 +140,7 @@ export default function ProcurarPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredPlayers.map((player, index) => (
-              <div key={index} className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-yellow-400/50 transition group">
+              <div key={index} className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-yellow-400/50 transition group flex flex-col">
                 
                 <div className="flex justify-between items-start mb-3">
                   <div>
@@ -155,22 +169,29 @@ export default function ProcurarPage() {
                 </div>
 
                 {player.Bio && player.Bio !== "Sem bio" && (
-                  <p className="text-sm text-zinc-400 italic mb-4 line-clamp-3">
+                  <p className="text-sm text-zinc-400 italic mb-4 line-clamp-3 flex-grow">
                     "{player.Bio}"
                   </p>
                 )}
 
-                <div className="border-t border-zinc-800 pt-4 space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-zinc-300">
-                    <span>💬</span> 
-                    <span className="truncate">{player.Contato || "Sem contato"}</span>
-                  </div>
+                {/* BOTÃO WHATSAPP DIRETO */}
+                <div className="border-t border-zinc-800 pt-4 mt-auto space-y-2">
+                  <a 
+                    href={formatWhatsAppLink(player.Contato)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition text-sm flex items-center justify-center gap-2"
+                  >
+                    <span>💬</span>
+                    <span>Chamar no WhatsApp</span>
+                  </a>
+                  
                   {player.Gameplay && player.Gameplay !== "Sem link" && (
                     <a 
                       href={player.Gameplay} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition"
+                      className="flex items-center justify-center gap-2 text-xs text-red-400 hover:text-red-300 transition py-1"
                     >
                       <span>▶️</span> Ver Gameplay
                     </a>

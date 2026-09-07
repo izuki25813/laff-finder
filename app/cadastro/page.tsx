@@ -6,7 +6,6 @@ import { useState } from "react";
 export default function CadastroPage() {
   const [status, setStatus] = useState("idle");
   
-  // ✅ LINK DO GRUPO DA TROPA DO ZK ATUALIZADO
   const LINK_GRUPO_ZK = "https://chat.whatsapp.com/HwVlP9Ju0JKLLFRdKA10BG"; 
   
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyz-rSJihhg5mQ7gYyAfCNFEkCb5QYyOZFD__Hw0bj0FBWofka5OyOJkh85GvCFyFFhiQ/exec";
@@ -34,7 +33,6 @@ export default function CadastroPage() {
     }
   };
 
-  // ===== TELA DE SUCESSO COM CHAMADA PARA O GRUPO =====
   if (status === "success") {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center p-6">
@@ -44,17 +42,16 @@ export default function CadastroPage() {
           <p className="text-zinc-400 mb-8">
             Seus dados foram enviados com sucesso para o banco do Izuuki.x.
             <br /><br />
-            Agora, não fique de fora! Entre para a comunidade e fique por dentro dos treinos e novidades da LAFF enquanto aguarda!
+            Agora, não fique de fora! Entre para a comunidade e fique por dentro das scales, treinos e novidades da LAFF.
           </p>
 
-          {/* BOTÃO DO WHATSAPP */}
           <a
             href={LINK_GRUPO_ZK}
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-xl mb-4 transition text-lg flex items-center justify-center gap-2 shadow-lg shadow-green-900/50"
           >
-            <span className="text-2xl">💬</span> Entrar na Tropa do ZK
+            <span className="text-2xl"></span> Entrar na Tropa do ZK
           </a>
 
           <Link 
@@ -70,12 +67,11 @@ export default function CadastroPage() {
     );
   }
 
-  // ===== TELA DE ERRO =====
   if (status === "error") {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center p-6">
         <div className="text-center max-w-md">
-          <div className="text-6xl mb-4">⚠️</div>
+          <div className="text-6xl mb-4">️</div>
           <h2 className="text-3xl font-black text-red-500 mb-4">Ops! Algo deu errado.</h2>
           <button onClick={() => setStatus("idle")} className="bg-zinc-700 text-white font-bold py-3 px-8 rounded-xl hover:bg-zinc-600 transition">
             Tentar novamente
@@ -85,7 +81,6 @@ export default function CadastroPage() {
     );
   }
 
-  // ===== FORMULÁRIO PRINCIPAL =====
   return (
     <main className="min-h-screen bg-black text-white p-6 md:p-10">
       <div className="max-w-2xl mx-auto">
@@ -98,7 +93,14 @@ export default function CadastroPage() {
             <div className="space-y-4">
               <input name="Nick" required placeholder="Nick no Free Fire *" className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition" />
               <input name="ID" required placeholder="ID do Free Fire *" className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition" />
-              <input name="Contato" required placeholder="Discord ou WhatsApp *" className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition" />
+              <input 
+                name="Contato" 
+                required 
+                type="tel"
+                placeholder="WhatsApp (ex: 11999999999) *" 
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition" 
+              />
+              <p className="text-xs text-zinc-500">Digite apenas números com DDD (ex: 11999999999)</p>
             </div>
           </section>
           
@@ -108,7 +110,7 @@ export default function CadastroPage() {
               <select name="FuncaoPrincipal" required className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition">
                 <option value="">Função Principal *</option>
                 <option>🟢 Rush 1</option>
-                <option>🟢 Rush 2</option>
+                <option> Rush 2</option>
                 <option>🔵 Granadeiro</option>
                 <option>🟡 Suporte</option>
                 <option>🟣 IGL (Capitão)</option>
@@ -117,7 +119,7 @@ export default function CadastroPage() {
                 <option value="">Função Secundária</option>
                 <option>🟢 Rush 1</option>
                 <option>🟢 Rush 2</option>
-                <option>🔵 Granadeiro</option>
+                <option> Granadeiro</option>
                 <option>🟡 Suporte</option>
                 <option>🟣 IGL (Capitão)</option>
               </select>
@@ -160,7 +162,7 @@ export default function CadastroPage() {
                 <option>🏆 Time completo</option>
                 <option>👤 1 jogador específico</option>
                 <option>👥 2 jogadores</option>
-                <option>🧩 Jogadores para completar meu time</option>
+                <option> Jogadores para completar meu time</option>
               </select>
               <select name="QtdJogadores" className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition">
                 <option value="">Quantos jogadores precisa?</option>
