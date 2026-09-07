@@ -84,19 +84,19 @@ export default function Home() {
               Participe de Xtreinos. Acesso a Coach e Dicas pra evoluir.
             </p>
 
-            {/* GRID COM 7 BOTÕES */}
+            {/* GRID COM 8 BOTÕES */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full max-w-6xl">
               
               {/* 1. Procurar */}
               <Link href="/procurar" className="rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-5 font-bold transition hover:bg-zinc-800 hover:border-yellow-400 flex flex-col items-center gap-2">
-                <span className="text-3xl">🔍</span>
+                <span className="text-3xl"></span>
                 <span>Procurar jogadores</span>
                 <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-black">Banco de Dados</span>
               </Link>
 
               {/* 2. Cadastrar */}
               <Link href="/cadastro" className="rounded-xl bg-yellow-400 px-6 py-5 font-bold text-black transition hover:bg-yellow-300 flex flex-col items-center gap-2 shadow-lg shadow-yellow-400/10">
-                <span className="text-3xl"></span>
+                <span className="text-3xl">📋</span>
                 <span>Cadastrar jogador</span>
                 <span className="text-[10px] uppercase tracking-wider text-yellow-700 font-black">Seu currículo de F/A</span>
               </Link>
@@ -110,7 +110,7 @@ export default function Home() {
 
               {/* 4. Mentoria */}
               <Link href="/mentoria" className="rounded-xl border border-yellow-600/50 bg-gradient-to-br from-yellow-900/20 to-black px-6 py-5 font-bold text-white transition hover:border-yellow-400 flex flex-col items-center gap-2">
-                <span className="text-3xl">👑</span>
+                <span className="text-3xl"></span>
                 <span>Mentoria ou Pro Level</span>
                 <span className="text-[10px] uppercase tracking-wider text-yellow-400 font-black">Evolua no Free Fire</span>
               </Link>
@@ -124,16 +124,23 @@ export default function Home() {
 
               {/* 6. Campeonatos */}
               <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-6 py-5 font-bold text-zinc-500 flex flex-col items-center gap-2 cursor-not-allowed opacity-60">
-                <span className="text-3xl"></span>
+                <span className="text-3xl">🏆</span>
                 <span>Campeonatos</span>
                 <span className="text-[10px] uppercase tracking-wider text-zinc-600 font-black">Em Breve</span>
               </div>
 
-              {/* 7. Complet e Divulgação (ATUALIZADO!) */}
+              {/* 7. Complet e Divulgação */}
               <Link href="/complet" className="rounded-xl border border-blue-900/50 bg-blue-950/30 px-6 py-5 font-bold text-white transition hover:bg-blue-900/50 hover:border-blue-500 flex flex-col items-center gap-2">
                 <span className="text-3xl">🤝</span>
                 <span>Complet e divulgação</span>
                 <span className="text-[10px] uppercase tracking-wider text-blue-400 font-black">Completar Campeonato ou Xtreino</span>
+              </Link>
+
+              {/* 8. Sugestões e Feedbacks */}
+              <Link href="/feedback" className="rounded-xl border border-purple-900/50 bg-purple-950/30 px-6 py-5 font-bold text-white transition hover:bg-purple-900/50 hover:border-purple-500 flex flex-col items-center gap-2">
+                <span className="text-3xl">💡</span>
+                <span>Sugestões e Feedbacks</span>
+                <span className="text-[10px] uppercase tracking-wider text-purple-400 font-black">Ajude a melhorar o site</span>
               </Link>
 
             </div>
