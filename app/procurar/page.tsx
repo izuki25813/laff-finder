@@ -30,6 +30,10 @@ export default function ProcurarPage() {
   const [loading, setLoading] = useState(true);
   const [filtroFuncao, setFiltroFuncao] = useState("");
   const [filtroPlataforma, setFiltroPlataforma] = useState("");
+  
+  // 🎯 MONTADOR DE TIMES
+  const [qtdVagas, setQtdVagas] = useState(0);
+  const [vagas, setVagas] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -60,11 +64,26 @@ export default function ProcurarPage() {
   }, []);
 
   const formatWhatsAppLink = (phone: string) => {
-    // Remove tudo que não é número
     const numbers = phone.replace(/\D/g, '');
-    // Adiciona 55 se não tiver (código do Brasil)
     const fullNumber = numbers.startsWith('55') ? numbers : '55' + numbers;
     return `https://wa.me/${fullNumber}`;
+  };
+
+  const handleQtdVagasChange = (qtd: number) => {
+    setQtdVagas(qtd);
+    const novasVagas = Array(qtd).fill("");
+    setVagas(novasVagas);
+  };
+
+  const handleVagaChange = (index: number, funcao: string) => {
+    const novasVagas = [...vagas];
+    novasVagas[index] = funcao;
+    setVagas(novasVagas);
+  };
+
+  const getJogadoresParaVaga = (funcao: string) => {
+    if (!funcao) return [];
+    return players.filter(p => p.FuncaoPrincipal?.includes(funcao));
   };
 
   const filteredPlayers = players.filter((p) => {
@@ -87,7 +106,81 @@ export default function ProcurarPage() {
           Encontre o player ideal para completar sua line na LAFF.
         </p>
 
-        {/*  FILTRO DE MATCH RÁPIDO */}
+        {/* 🎯 MONTADOR DE TIMES (NOVO!) */}
+        <div className="bg-gradient-to-br from-yellow-900/20 to-black border border-yellow-600/50 rounded-2xl p-6 mb-8">
+          <h2 className="text-2xl font-black text-yellow-400 mb-4">🎯 Montador de Times</h2>
+          <p className="text-zinc-400 mb-6">Quantas vagas você precisa preencher no seu time?</p>
+          
+          <div className="flex gap-2 mb-6">
+            {[1, 2, 3, 4].map((num) => (
+              <button
+                key={num}
+                onClick={() => handleQtdVagasChange(num)}
+                className={`flex-1 py-3 rounded-lg font-bold transition ${
+                  qtdVagas === num 
+                    ? "bg-yellow-400 text-black" 
+                    : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                }`}
+              >
+                {num} {num === 1 ? "vaga" : "vagas"}
+              </button>
+            ))}
+          </div>
+
+          {qtdVagas > 0 && (
+            <div className="space-y-4">
+              {vagas.map((vaga, index) => (
+                <div key={index} className="bg-zinc-900 rounded-lg p-4">
+                  <label className="block text-sm font-bold text-zinc-300 mb-2">
+                    Vaga {index + 1}: Qual função você precisa?
+                  </label>
+                  <select
+                    value={vaga}
+                    onChange={(e) => handleVagaChange(index, e.target.value)}
+                    className="w-full bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
+                  >
+                    <option value="">Selecione a função...</option>
+                    {roles.map((role) => (
+                      <option key={role} value={role}>{role}</option>
+                    ))}
+                  </select>
+
+                  {vaga && (
+                    <div className="mt-4">
+                      <p className="text-sm text-zinc-500 mb-2">
+                        Jogadores disponíveis para {vaga}:
+                      </p>
+                      <div className="space-y-2">
+                        {getJogadoresParaVaga(vaga).length === 0 ? (
+                          <p className="text-sm text-zinc-600">Nenhum jogador encontrado para esta função.</p>
+                        ) : (
+                          getJogadoresParaVaga(vaga).map((player, pIndex) => (
+                            <div key={pIndex} className="bg-zinc-800 rounded-lg p-3 flex justify-between items-center">
+                              <div>
+                                <p className="font-bold text-white">{player.Nick}</p>
+                                <p className="text-xs text-zinc-500">ID: {player.ID} • {player.Plataforma}</p>
+                              </div>
+                              <a
+                                href={formatWhatsAppLink(player.Contato)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-green-600 hover:bg-green-500 text-white text-xs font-bold px-3 py-2 rounded-lg transition"
+                              >
+                                💬 Chamar
+                              </a>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* FILTRO DE MATCH RÁPIDO */}
         <div className="mb-8">
           <h2 className="text-sm font-bold text-yellow-400 uppercase tracking-wider mb-3">🎯 O que você precisa no seu time?</h2>
           <div className="flex flex-wrap gap-2">
@@ -174,7 +267,6 @@ export default function ProcurarPage() {
                   </p>
                 )}
 
-                {/* BOTÃO WHATSAPP DIRETO */}
                 <div className="border-t border-zinc-800 pt-4 mt-auto space-y-2">
                   <a 
                     href={formatWhatsAppLink(player.Contato)}
