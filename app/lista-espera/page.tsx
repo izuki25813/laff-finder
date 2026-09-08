@@ -37,7 +37,7 @@ const planos = [
     preco: "49,90",
     beneficios: [
       "Prioridade Máxima (Pula a fila inteira)",
-      "Garantia de teste agendado em até 48 horas",
+      "Garantia de teste agendado em até 24 horas",
       "Feedback em Áudio/Vídeo (15min) pós-teste",
       "+1 Dia de Pro Level GRÁTIS",
       "Selo 'Candidato Elite' no seu perfil F/A"
