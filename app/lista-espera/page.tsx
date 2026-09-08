@@ -8,7 +8,7 @@ const CHAVE_PIX = "izukianonimo@gmail.com";
 
 export default function ListaEsperaPage() {
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState({ nick: "", id: "", whatsapp: "", nivel: "" });
+  const [form, setForm] = useState({ nick: "", videoLink: "", whatsapp: "", funcao: "" });
   const [submitting, setSubmitting] = useState(false);
   const [pixCopied, setPixCopied] = useState(false);
   const [errors, setErrors] = useState<any>({});
@@ -16,7 +16,11 @@ export default function ListaEsperaPage() {
   const validateStep1 = () => {
     const newErrors: any = {};
     if (!form.nick.trim()) newErrors.nick = "Nick é obrigatório";
-    if (!form.id.trim()) newErrors.id = "ID é obrigatório";
+    if (!form.videoLink.trim()) {
+      newErrors.videoLink = "Link de vídeo é obrigatório";
+    } else if (!form.videoLink.includes('http')) {
+      newErrors.videoLink = "Insira um link válido (comece com http)";
+    }
     if (!form.whatsapp.trim()) {
       newErrors.whatsapp = "WhatsApp é obrigatório";
     } else if (form.whatsapp.replace(/\D/g, '').length < 10) {
@@ -46,9 +50,9 @@ export default function ListaEsperaPage() {
         body: JSON.stringify({
           action: "join_waiting_list",
           nick: form.nick,
-          id: form.id,
+          videoLink: form.videoLink,
           whatsapp: form.whatsapp,
-          nivel: form.nivel
+          funcao: form.funcao
         })
       });
       setStep(3);
@@ -93,7 +97,7 @@ export default function ListaEsperaPage() {
       <div className="max-w-2xl mx-auto">
         <Link href="/" className="text-yellow-400 hover:underline mb-8 inline-block font-bold">← Voltar para o início</Link>
         
-        <h1 className="text-4xl font-black mb-2 text-white"> Acesso VIP - ZK Esports</h1>
+        <h1 className="text-4xl font-black mb-2 text-white">🔒 Acesso VIP - ZK Esports</h1>
         <p className="text-zinc-400 mb-8">
           Preencha seus dados e realize o pagamento para entrar na lista de espera oficial.
         </p>
@@ -135,19 +139,19 @@ export default function ListaEsperaPage() {
                   {errors.nick && <p className="text-red-500 text-xs mt-1">{errors.nick}</p>}
                 </div>
 
-                {/* ID */}
+                {/* LINK DE VÍDEO (NOVO!) */}
                 <div>
                   <label className="block text-sm font-bold text-zinc-300 mb-2">
-                    ID do Free Fire <span className="text-red-500">*</span>
+                    Link de Rede Social com Vídeos <span className="text-red-500">*</span>
                   </label>
                   <input 
-                    value={form.id} 
-                    onChange={e => setForm({...form, id: e.target.value})} 
-                    placeholder="Ex: 123456789" 
-                    type="number"
-                    className={`w-full bg-black border rounded-lg p-3 text-white focus:outline-none transition ${errors.id ? 'border-red-500' : 'border-zinc-700 focus:border-yellow-400'}`} 
+                    value={form.videoLink} 
+                    onChange={e => setForm({...form, videoLink: e.target.value})} 
+                    placeholder="Ex: https://youtube.com/@seucanal ou https://instagram.com/seuinsta" 
+                    className={`w-full bg-black border rounded-lg p-3 text-white focus:outline-none transition ${errors.videoLink ? 'border-red-500' : 'border-zinc-700 focus:border-yellow-400'}`} 
                   />
-                  {errors.id && <p className="text-red-500 text-xs mt-1">{errors.id}</p>}
+                  {errors.videoLink && <p className="text-red-500 text-xs mt-1">{errors.videoLink}</p>}
+                  <p className="text-zinc-600 text-xs mt-1">YouTube, Instagram ou TikTok com suas gameplays</p>
                 </div>
 
                 {/* WHATSAPP */}
@@ -166,21 +170,22 @@ export default function ListaEsperaPage() {
                   <p className="text-zinc-600 text-xs mt-1">Usaremos este número para te chamar após confirmar o pagamento</p>
                 </div>
 
-                {/* NÍVEL (OPCIONAL) */}
+                {/* FUNÇÃO (NOVA!) */}
                 <div>
                   <label className="block text-sm font-bold text-zinc-300 mb-2">
-                    Seu nível atual <span className="text-zinc-600">(opcional)</span>
+                    Sua Função <span className="text-zinc-600">(opcional)</span>
                   </label>
                   <select 
-                    value={form.nivel} 
-                    onChange={e => setForm({...form, nivel: e.target.value})} 
+                    value={form.funcao} 
+                    onChange={e => setForm({...form, funcao: e.target.value})} 
                     className="w-full bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
                   >
-                    <option value="">Selecione seu nível</option>
-                    <option>🟤 Iniciante</option>
-                    <option>🟠 Intermediário</option>
-                    <option>🔵 Avançado</option>
-                    <option>🟣 Profissional</option>
+                    <option value="">Selecione sua função</option>
+                    <option>🟢 Rush 1</option>
+                    <option>🟢 Rush 2</option>
+                    <option>🔵 Granadeiro</option>
+                    <option> Suporte</option>
+                    <option> IGL (Capitão)</option>
                   </select>
                 </div>
               </div>
@@ -215,7 +220,7 @@ export default function ListaEsperaPage() {
 
               <div className="bg-yellow-900/10 border border-yellow-600/30 rounded-lg p-4">
                 <p className="text-yellow-400 text-sm">
-                  ️ Após fazer o PIX no seu banco, clique no botão abaixo para confirmar sua entrada na lista. O Izuuki.x irá conferir o pagamento e te chamar no WhatsApp.
+                  ⚠️ Após fazer o PIX no seu banco, clique no botão abaixo para confirmar sua entrada na lista. O Izuuki.x irá conferir o pagamento e te chamar no WhatsApp.
                 </p>
               </div>
 
