@@ -6,6 +6,9 @@ import { useState } from "react";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywdkprIPjco6PAB-m9Crnx-fLFxwzRSEoWt9ydPj5Z1qQJzYhIscz83ZXOiYFC4aD8gg/exec"; 
 const CHAVE_PIX = "izukianonimo@gmail.com"; 
 
+// ⚠️ TROQUE PELO SEU NÚMERO DE WHATSAPP REAL (com 55 + DDD + número, sem espaços ou traços)
+const ADMIN_WHATSAPP = "5511999999999"; 
+
 export default function ListaEsperaPage() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ nick: "", videoLink: "", whatsapp: "", funcao: "" });
@@ -40,6 +43,13 @@ export default function ListaEsperaPage() {
     navigator.clipboard.writeText(CHAVE_PIX);
     setPixCopied(true);
     setTimeout(() => setPixCopied(false), 2000);
+  };
+
+  // FUNÇÃO NOVA: ABRIR WHATSAPP COM MENSAGEM PRONTA E PEDIDO DE PRINT
+  const handleSendReceipt = () => {
+    const mensagem = `Olá Izuuki.x! Acabei de fazer o PIX para entrar na Lista de Espera VIP.\n\nMeu Nick: ${form.nick}\nMinha Função: ${form.funcao || 'Não informada'}\n\nSegue o comprovante em anexo! 👇`;
+    const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
   };
 
   const handleConfirmPayment = async () => {
@@ -81,7 +91,7 @@ export default function ListaEsperaPage() {
             Acompanhe as lives e aguarde ser chamado.
             <br/><br/>
             <span className="text-sm text-zinc-500">
-              Assim que o pagamento for confirmado pelo Izuuki.x, você receberá o acesso no WhatsApp.
+              Assim que o Izuuki.x conferir seu comprovante no WhatsApp, seu acesso será liberado.
             </span>
           </p>
           <Link href="/" className="block w-full bg-yellow-400 text-black font-bold py-3 rounded-xl hover:bg-yellow-300 transition">
@@ -125,75 +135,39 @@ export default function ListaEsperaPage() {
               </div>
 
               <div className="space-y-4">
-                {/* NICK */}
                 <div>
-                  <label className="block text-sm font-bold text-zinc-300 mb-2">
-                    Nick no Free Fire <span className="text-red-500">*</span>
-                  </label>
-                  <input 
-                    value={form.nick} 
-                    onChange={e => setForm({...form, nick: e.target.value})} 
-                    placeholder="Ex: Izuuki.x" 
-                    className={`w-full bg-black border rounded-lg p-3 text-white focus:outline-none transition ${errors.nick ? 'border-red-500' : 'border-zinc-700 focus:border-yellow-400'}`} 
-                  />
+                  <label className="block text-sm font-bold text-zinc-300 mb-2">Nick no Free Fire <span className="text-red-500">*</span></label>
+                  <input value={form.nick} onChange={e => setForm({...form, nick: e.target.value})} placeholder="Ex: Izuuki.x" className={`w-full bg-black border rounded-lg p-3 text-white focus:outline-none transition ${errors.nick ? 'border-red-500' : 'border-zinc-700 focus:border-yellow-400'}`} />
                   {errors.nick && <p className="text-red-500 text-xs mt-1">{errors.nick}</p>}
                 </div>
 
-                {/* LINK DE VÍDEO (NOVO!) */}
                 <div>
-                  <label className="block text-sm font-bold text-zinc-300 mb-2">
-                    Link de Rede Social com Vídeos <span className="text-red-500">*</span>
-                  </label>
-                  <input 
-                    value={form.videoLink} 
-                    onChange={e => setForm({...form, videoLink: e.target.value})} 
-                    placeholder="Ex: https://youtube.com/@seucanal ou https://instagram.com/seuinsta" 
-                    className={`w-full bg-black border rounded-lg p-3 text-white focus:outline-none transition ${errors.videoLink ? 'border-red-500' : 'border-zinc-700 focus:border-yellow-400'}`} 
-                  />
+                  <label className="block text-sm font-bold text-zinc-300 mb-2">Link de Rede Social com Vídeos <span className="text-red-500">*</span></label>
+                  <input value={form.videoLink} onChange={e => setForm({...form, videoLink: e.target.value})} placeholder="Ex: https://youtube.com/@seucanal" className={`w-full bg-black border rounded-lg p-3 text-white focus:outline-none transition ${errors.videoLink ? 'border-red-500' : 'border-zinc-700 focus:border-yellow-400'}`} />
                   {errors.videoLink && <p className="text-red-500 text-xs mt-1">{errors.videoLink}</p>}
                   <p className="text-zinc-600 text-xs mt-1">YouTube, Instagram ou TikTok com suas gameplays</p>
                 </div>
 
-                {/* WHATSAPP */}
                 <div>
-                  <label className="block text-sm font-bold text-zinc-300 mb-2">
-                    WhatsApp <span className="text-red-500">*</span>
-                  </label>
-                  <input 
-                    value={form.whatsapp} 
-                    onChange={e => setForm({...form, whatsapp: formatWhatsApp(e.target.value)})} 
-                    placeholder="(11) 99999-9999" 
-                    maxLength={15}
-                    className={`w-full bg-black border rounded-lg p-3 text-white focus:outline-none transition ${errors.whatsapp ? 'border-red-500' : 'border-zinc-700 focus:border-yellow-400'}`} 
-                  />
+                  <label className="block text-sm font-bold text-zinc-300 mb-2">WhatsApp <span className="text-red-500">*</span></label>
+                  <input value={form.whatsapp} onChange={e => setForm({...form, whatsapp: formatWhatsApp(e.target.value)})} placeholder="(11) 99999-9999" maxLength={15} className={`w-full bg-black border rounded-lg p-3 text-white focus:outline-none transition ${errors.whatsapp ? 'border-red-500' : 'border-zinc-700 focus:border-yellow-400'}`} />
                   {errors.whatsapp && <p className="text-red-500 text-xs mt-1">{errors.whatsapp}</p>}
-                  <p className="text-zinc-600 text-xs mt-1">Usaremos este número para te chamar após confirmar o pagamento</p>
                 </div>
 
-                {/* FUNÇÃO (NOVA!) */}
                 <div>
-                  <label className="block text-sm font-bold text-zinc-300 mb-2">
-                    Sua Função <span className="text-zinc-600">(opcional)</span>
-                  </label>
-                  <select 
-                    value={form.funcao} 
-                    onChange={e => setForm({...form, funcao: e.target.value})} 
-                    className="w-full bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
-                  >
+                  <label className="block text-sm font-bold text-zinc-300 mb-2">Sua Função <span className="text-zinc-600">(opcional)</span></label>
+                  <select value={form.funcao} onChange={e => setForm({...form, funcao: e.target.value})} className="w-full bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none">
                     <option value="">Selecione sua função</option>
                     <option>🟢 Rush 1</option>
                     <option>🟢 Rush 2</option>
                     <option>🔵 Granadeiro</option>
-                    <option> Suporte</option>
-                    <option> IGL (Capitão)</option>
+                    <option>🟡 Suporte</option>
+                    <option>🟣 IGL (Capitão)</option>
                   </select>
                 </div>
               </div>
 
-              <button 
-                onClick={handleNextStep}
-                className="w-full bg-yellow-400 text-black font-black py-4 rounded-xl hover:bg-yellow-300 transition text-lg shadow-lg"
-              >
+              <button onClick={handleNextStep} className="w-full bg-yellow-400 text-black font-black py-4 rounded-xl hover:bg-yellow-300 transition text-lg shadow-lg">
                 Ir para Pagamento →
               </button>
             </div>
@@ -203,24 +177,29 @@ export default function ListaEsperaPage() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-black text-yellow-400 mb-2">Passo 2: Pagamento via PIX</h2>
-                <p className="text-zinc-500 text-sm">Copie a chave e faça o pagamento no seu banco</p>
+                <p className="text-zinc-500 text-sm">Copie a chave, pague no seu banco e envie o print</p>
               </div>
               
               <div className="bg-black border-2 border-dashed border-yellow-400/50 rounded-xl p-6 text-center">
                 <p className="text-zinc-400 text-sm mb-2">Chave PIX (E-mail):</p>
                 <p className="text-white font-mono text-lg break-all mb-4">{CHAVE_PIX}</p>
                 
-                <button 
-                  onClick={handleCopyPix}
-                  className={`w-full font-bold py-3 rounded-lg transition ${pixCopied ? 'bg-green-600 text-white' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}
-                >
+                <button onClick={handleCopyPix} className={`w-full font-bold py-3 rounded-lg transition ${pixCopied ? 'bg-green-600 text-white' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>
                   {pixCopied ? '✅ Chave Copiada!' : '📋 Copiar Chave PIX'}
                 </button>
               </div>
 
+              {/* BOTÃO NOVO PARA ENVIAR O PRINT */}
+              <button 
+                onClick={handleSendReceipt}
+                className="w-full bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-xl transition text-lg flex items-center justify-center gap-2 shadow-lg shadow-green-900/50"
+              >
+                📲 Enviar Comprovante no WhatsApp
+              </button>
+
               <div className="bg-yellow-900/10 border border-yellow-600/30 rounded-lg p-4">
-                <p className="text-yellow-400 text-sm">
-                  ⚠️ Após fazer o PIX no seu banco, clique no botão abaixo para confirmar sua entrada na lista. O Izuuki.x irá conferir o pagamento e te chamar no WhatsApp.
+                <p className="text-yellow-400 text-sm text-center">
+                  ⚠️ Após enviar o print no WhatsApp, clique no botão abaixo para finalizar seu cadastro na lista.
                 </p>
               </div>
 
@@ -231,9 +210,9 @@ export default function ListaEsperaPage() {
                 <button 
                   onClick={handleConfirmPayment}
                   disabled={submitting}
-                  className="flex-[2] bg-green-600 text-white font-black py-4 rounded-xl hover:bg-green-500 transition disabled:bg-zinc-700"
+                  className="flex-[2] bg-zinc-700 text-zinc-300 font-black py-4 rounded-xl hover:bg-zinc-600 transition disabled:opacity-50"
                 >
-                  {submitting ? 'Confirmando...' : '✅ JÁ FIZ O PIX, ENTRAR NA LISTA'}
+                  {submitting ? 'Cadastrando...' : '✅ JÁ ENVIEI O COMPROVANTE'}
                 </button>
               </div>
             </div>
