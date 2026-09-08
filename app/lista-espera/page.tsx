@@ -81,6 +81,7 @@ export default function ListaEsperaPage() {
     return numbers.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3').trim();
   };
 
+  // TELA 3: SUCESSO (COM REDIRECIONAMENTO PARA MENTORIA)
   if (step === 3) {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center p-6">
@@ -94,8 +95,14 @@ export default function ListaEsperaPage() {
               Assim que o Izuuki.x conferir seu comprovante no WhatsApp, seu acesso será liberado.
             </span>
           </p>
-          <Link href="/" className="block w-full bg-yellow-400 text-black font-bold py-3 rounded-xl hover:bg-yellow-300 transition">
-            Voltar ao início
+          
+          {/* BOTÃO REDIRECIONANDO PARA MENTORIA (SEGUNDA COMPRA) */}
+          <Link href="/mentoria" className="block w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black font-black py-4 rounded-xl hover:from-yellow-500 hover:to-yellow-300 transition mb-3 shadow-lg">
+            🚀 Ver Planos de Mentoria e Evolução
+          </Link>
+          
+          <Link href="/" className="block w-full bg-zinc-800 text-zinc-300 font-bold py-3 rounded-xl hover:bg-zinc-700 transition text-sm">
+            ← Voltar ao início
           </Link>
         </div>
       </main>
