@@ -3,9 +3,6 @@
 import Link from "next/link";
 
 export default function TesteZKPage() {
-  // ⚠️ TROQUE PELO SEU LINK REAL (WhatsApp, Google Forms, Calendly, etc)
-  const LINK_AGENDAMENTO = "https://wa.me/55SEUNUMEROAQUI?text=Ola%20Izuki,%20quero%20agendar%20meu%20teste%20para%20a%20ZK%20Esports!";
-
   return (
     <main className="min-h-screen bg-black text-white p-6 md:p-10">
       <div className="max-w-4xl mx-auto">
@@ -33,14 +30,13 @@ export default function TesteZKPage() {
             e ainda trabalhe e evolua com o acompanhamento do coach <span className="text-white font-bold">izuki.x</span> dentro do ambiente dos 60 ZKs!
           </p>
           
-          <a 
-            href={LINK_AGENDAMENTO}
-            target="_blank" 
-            rel="noopener noreferrer"
+          {/* BOTÃO QUE LEVA PARA A LISTA DE ESPERA COM PAGAMENTO */}
+          <Link 
+            href="/lista-espera"
             className="block w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black text-center py-5 rounded-xl transition text-xl shadow-lg hover:scale-[1.02] transform duration-200"
           >
             🎯 QUERO FAZER O TESTE AGORA
-          </a>
+          </Link>
         </div>
 
         {/* BENEFÍCIOS */}
@@ -52,7 +48,7 @@ export default function TesteZKPage() {
           </div>
           
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-            <div className="text-3xl mb-2">🏅</div>
+            <div className="text-3xl mb-2"></div>
             <h3 className="font-black text-white mb-2">Campeonatos</h3>
             <p className="text-zinc-400 text-sm">Jogue GWL, All Win, Liga do Rei e outros torneios oficiais.</p>
           </div>

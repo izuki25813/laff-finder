@@ -27,7 +27,6 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-black text-white">
       
-      {/* ===== TELA DE INSCRIÇÃO (GATE) ===== */}
       {showGate && (
         <div className="fixed inset-0 bg-black z-50 flex items-center justify-center p-6">
           <div className="max-w-md w-full text-center">
@@ -66,7 +65,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* ===== CONTEÚDO PRINCIPAL (HOME) ===== */}
       {!showGate && (
         <div className="flex flex-col min-h-screen">
           <section className="flex-1 flex flex-col items-center justify-center px-6 py-20 text-center">
@@ -84,7 +82,7 @@ export default function Home() {
               Participe de Xtreinos. Acesso a Coach e Dicas pra evoluir.
             </p>
 
-            {/* GRID COM 9 BOTÕES */}
+            {/* GRID COM 8 BOTÕES */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full max-w-6xl">
               
               {/* 1. Procurar */}
@@ -131,7 +129,7 @@ export default function Home() {
 
               {/* 7. Complet e Divulgação */}
               <Link href="/complet" className="rounded-xl border border-blue-900/50 bg-blue-950/30 px-6 py-5 font-bold text-white transition hover:bg-blue-900/50 hover:border-blue-500 flex flex-col items-center gap-2">
-                <span className="text-3xl"></span>
+                <span className="text-3xl">🤝</span>
                 <span>Complet e divulgação</span>
                 <span className="text-[10px] uppercase tracking-wider text-blue-400 font-black">Completar Campeonato ou Xtreino</span>
               </Link>
@@ -143,17 +141,9 @@ export default function Home() {
                 <span className="text-[10px] uppercase tracking-wider text-purple-400 font-black">Ajude a melhorar o site</span>
               </Link>
 
-              {/* 9. Lista de Espera VIP (NOVO!) */}
-              <Link href="/lista-espera" className="rounded-xl border-2 border-green-500 bg-gradient-to-br from-green-900/30 to-black px-6 py-5 font-bold text-white transition hover:scale-[1.02] hover:shadow-lg hover:shadow-green-500/20 flex flex-col items-center gap-2">
-                <span className="text-3xl">🔒</span>
-                <span>Lista de Espera VIP</span>
-                <span className="text-[10px] uppercase tracking-wider text-green-400 font-black">Acesso Exclusivo ZK</span>
-              </Link>
-
             </div>
           </section>
 
-          {/* ===== RODAPÉ COM APOIO ===== */}
           <footer className="border-t border-zinc-800 bg-zinc-950 py-8 px-6">
             <div className="max-w-4xl mx-auto text-center">
               <div className="mb-4">
