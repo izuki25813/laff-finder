@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywdkprIPjco6PAB-m9Crnx-fLFxwzRSEoWt9ydPj5Z1qQJzYhIscz83ZXOiYFC4aD8gg/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzdKS94B_pfhFz60ugR01gxUN45OkgzUy9_Nbhhcn0d49hDuMcuLkgFDpQxPK4BRh-Vag/exec";
 
 export default function FeedbackPage() {
   const [tipo, setTipo] = useState("Sugestão");
