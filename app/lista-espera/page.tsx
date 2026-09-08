@@ -27,7 +27,7 @@ const planos = [
     beneficios: [
       "Tudo do Plano Padrão",
       "Pula 50% da fila de espera",
-      "Análise escrita rápida do Izuuki.x",
+      "Prescrição de Treino escrito rápida do Izuuki.x",
       "React de Brinde para analisar erros após o teste!"
     ]
   },
