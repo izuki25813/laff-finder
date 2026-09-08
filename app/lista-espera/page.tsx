@@ -6,8 +6,8 @@ import { useState } from "react";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywdkprIPjco6PAB-m9Crnx-fLFxwzRSEoWt9ydPj5Z1qQJzYhIscz83ZXOiYFC4aD8gg/exec"; 
 const CHAVE_PIX = "izukianonimo@gmail.com"; 
 
-// ⚠️ TROQUE PELO SEU NÚMERO DE WHATSAPP REAL (com 55 + DDD + número, sem espaços ou traços)
-const ADMIN_WHATSAPP = "5511999999999"; 
+// SEU WHATSAPP ATUALIZADO (55 + DDD + NÚMERO, TUDO JUNTO)
+const ADMIN_WHATSAPP = "559984399514"; 
 
 export default function ListaEsperaPage() {
   const [step, setStep] = useState(1);
@@ -45,7 +45,7 @@ export default function ListaEsperaPage() {
     setTimeout(() => setPixCopied(false), 2000);
   };
 
-  // FUNÇÃO NOVA: ABRIR WHATSAPP COM MENSAGEM PRONTA E PEDIDO DE PRINT
+  // ABRIR WHATSAPP COM MENSAGEM PRONTA E PEDIDO DE PRINT
   const handleSendReceipt = () => {
     const mensagem = `Olá Izuuki.x! Acabei de fazer o PIX para entrar na Lista de Espera VIP.\n\nMeu Nick: ${form.nick}\nMinha Função: ${form.funcao || 'Não informada'}\n\nSegue o comprovante em anexo! 👇`;
     const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(mensagem)}`;
@@ -150,7 +150,7 @@ export default function ListaEsperaPage() {
 
                 <div>
                   <label className="block text-sm font-bold text-zinc-300 mb-2">WhatsApp <span className="text-red-500">*</span></label>
-                  <input value={form.whatsapp} onChange={e => setForm({...form, whatsapp: formatWhatsApp(e.target.value)})} placeholder="(11) 99999-9999" maxLength={15} className={`w-full bg-black border rounded-lg p-3 text-white focus:outline-none transition ${errors.whatsapp ? 'border-red-500' : 'border-zinc-700 focus:border-yellow-400'}`} />
+                  <input value={form.whatsapp} onChange={e => setForm({...form, whatsapp: formatWhatsApp(e.target.value)})} placeholder="(99) 8439-9514" maxLength={15} className={`w-full bg-black border rounded-lg p-3 text-white focus:outline-none transition ${errors.whatsapp ? 'border-red-500' : 'border-zinc-700 focus:border-yellow-400'}`} />
                   {errors.whatsapp && <p className="text-red-500 text-xs mt-1">{errors.whatsapp}</p>}
                 </div>
 
@@ -189,7 +189,7 @@ export default function ListaEsperaPage() {
                 </button>
               </div>
 
-              {/* BOTÃO NOVO PARA ENVIAR O PRINT */}
+              {/* BOTÃO PARA ENVIAR O PRINT DIRETO NO SEU ZAP */}
               <button 
                 onClick={handleSendReceipt}
                 className="w-full bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-xl transition text-lg flex items-center justify-center gap-2 shadow-lg shadow-green-900/50"
