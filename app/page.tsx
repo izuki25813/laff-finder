@@ -89,7 +89,7 @@ export default function Home() {
               
               {/* 1. Procurar */}
               <Link href="/procurar" className="rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-5 font-bold transition hover:bg-zinc-800 hover:border-yellow-400 flex flex-col items-center gap-2">
-                <span className="text-3xl"></span>
+                <span className="text-3xl">🔍</span>
                 <span>Procurar jogadores</span>
                 <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-black">Banco de Dados</span>
               </Link>
@@ -110,7 +110,7 @@ export default function Home() {
 
               {/* 4. Mentoria */}
               <Link href="/mentoria" className="rounded-xl border border-yellow-600/50 bg-gradient-to-br from-yellow-900/20 to-black px-6 py-5 font-bold text-white transition hover:border-yellow-400 flex flex-col items-center gap-2">
-                <span className="text-3xl"></span>
+                <span className="text-3xl">👑</span>
                 <span>Mentoria ou Pro Level</span>
                 <span className="text-[10px] uppercase tracking-wider text-yellow-400 font-black">Evolua no Free Fire</span>
               </Link>
@@ -122,16 +122,16 @@ export default function Home() {
                 <span className="text-[10px] uppercase tracking-wider text-green-400 font-black">Grátis • YouTube • Sala Aérea</span>
               </a>
 
-              {/* 6. Campeonatos */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-6 py-5 font-bold text-zinc-500 flex flex-col items-center gap-2 cursor-not-allowed opacity-60">
+              {/* 6. Teste ZK Esports (NOVO!) */}
+              <Link href="/teste-zk" className="rounded-xl border-2 border-yellow-400 bg-gradient-to-br from-yellow-900/30 to-black px-6 py-5 font-bold text-white transition hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-400/20 flex flex-col items-center gap-2">
                 <span className="text-3xl">🏆</span>
-                <span>Campeonatos</span>
-                <span className="text-[10px] uppercase tracking-wider text-zinc-600 font-black">Em Breve</span>
-              </div>
+                <span>Teste ZK Esports</span>
+                <span className="text-[10px] uppercase tracking-wider text-yellow-400 font-black">Entre nas 6 lines elites</span>
+              </Link>
 
               {/* 7. Complet e Divulgação */}
               <Link href="/complet" className="rounded-xl border border-blue-900/50 bg-blue-950/30 px-6 py-5 font-bold text-white transition hover:bg-blue-900/50 hover:border-blue-500 flex flex-col items-center gap-2">
-                <span className="text-3xl">🤝</span>
+                <span className="text-3xl"></span>
                 <span>Complet e divulgação</span>
                 <span className="text-[10px] uppercase tracking-wider text-blue-400 font-black">Completar Campeonato ou Xtreino</span>
               </Link>
