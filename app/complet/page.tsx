@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzdKS94B_pfhFz60ugR01gxUN45OkgzUy9_Nbhhcn0d49hDuMcuLkgFDpQxPK4BRh-Vag/exec"; 
+// ⚠️ COLE A NOVA URL DO APPS SCRIPT AQUI, MANTENDO AS ASPAS ""
+const SCRIPT_URL = "COLE_AQUI_SUA_NOVA_URL_DO_APPS_SCRIPT"; 
 
 export default function CompletPage() {
   const [activeTab, setActiveTab] = useState<"disponivel" | "precisando">("disponivel");
@@ -54,16 +55,10 @@ export default function CompletPage() {
     }
   };
 
-  // Quando o usuário digita o Nick, busca automaticamente os dados
   const handleNickChange = (nick: string) => {
     setForm({...form, nick});
-    
-    const playerEncontrado = players.find(p => 
-      p.Nick?.toLowerCase() === nick.toLowerCase()
-    );
-
+    const playerEncontrado = players.find(p => p.Nick?.toLowerCase() === nick.toLowerCase());
     if (playerEncontrado) {
-      // Preenche automaticamente função e contato
       setForm(prev => ({
         ...prev,
         nick,
@@ -114,7 +109,6 @@ export default function CompletPage() {
         body: JSON.stringify({ action: "delete_complet", nick: nick, pin: pinInput })
       });
       const result = await res.json();
-      
       if (result.status === 'deleted') {
         alert("Post apagado com sucesso!");
         fetchPosts();
@@ -135,7 +129,6 @@ export default function CompletPage() {
 
   const formatHorario = (horario: string) => {
     if (!horario) return "";
-    // Se for timestamp ISO, extrai só a hora
     if (horario.includes('T')) {
       const date = new Date(horario);
       return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -157,7 +150,6 @@ export default function CompletPage() {
           <span className="text-xs text-zinc-500">⚠️ Os posts somem automaticamente após 5 horas.</span>
         </p>
 
-        {/* ABAS */}
         <div className="flex gap-2 mb-8 bg-zinc-900 p-1 rounded-xl">
           <button 
             onClick={() => setActiveTab("disponivel")}
@@ -173,7 +165,6 @@ export default function CompletPage() {
           </button>
         </div>
 
-        {/* FORMULÁRIO */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-10">
           <h2 className="text-xl font-black mb-4 text-yellow-400">
             {activeTab === "disponivel" ? "Oferecer minha vaga" : "Procurar jogadores"}
@@ -207,7 +198,7 @@ export default function CompletPage() {
                 >
                   <option value="">Sua Função Principal *</option>
                   <option>🟢 Rush 1</option>
-                  <option> Rush 2</option>
+                  <option>🟢 Rush 2</option>
                   <option>🔵 Granadeiro</option>
                   <option>🟡 Suporte</option>
                   <option>🟣 IGL (Capitão)</option>
@@ -287,7 +278,6 @@ export default function CompletPage() {
           </form>
         </div>
 
-        {/* FEED DE POSTS */}
         <h2 className="text-2xl font-black mb-4 text-white">📢 Anúncios Ativos</h2>
         
         {loading ? (
