@@ -1,80 +1,77 @@
-"use client";
-
 import Link from "next/link";
 
 export default function MentoriaPage() {
-  // ⚠️ SUBSTITUA O LINK ABAIXO PELO SEU WHATSAPP OU LINK DE AGENDAMENTO (ex: Calendly)
-  // Exemplo WhatsApp: "https://wa.me/5511999999999?text=Ola%20Izuki,%20quero%20agendar%20meu%20teste%20para%20a%20ZK%20Esports!"
-  const LINK_TESTE_ZK = "https://wa.me/55SEUNUMEROAQUI?text=Ola%20Izuki,%20quero%20agendar%20meu%20teste%20para%20a%20ZK%20Esports!";
-
   return (
     <main className="min-h-screen bg-black text-white p-6 md:p-10">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <Link href="/" className="text-yellow-400 hover:underline mb-8 inline-block font-bold">
           ← Voltar para o início
         </Link>
 
-        <h1 className="text-4xl md:text-5xl font-black mb-2 text-white">👑 Mentoria e Pro Level</h1>
-        <p className="text-zinc-400 mb-10 text-lg">
-          Evolua sua gameplay, entenda o macro do jogo e alcance o nível profissional com o acompanhamento direto do Izuuki.x.
-        </p>
-
-        {/* 🏆 DESTAQUE: TESTE ZK ESPORTS */}
-        <div className="rounded-2xl border-2 border-yellow-400 bg-gradient-to-br from-yellow-900/20 to-black p-6 md:p-8 mb-10 shadow-lg shadow-yellow-400/10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 bg-yellow-400 text-black text-xs font-black px-3 py-1 rounded-bl-xl">
-            EXCLUSIVO
-          </div>
-          
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-4xl">🏆</span>
-            <h2 className="text-2xl md:text-3xl font-black text-yellow-400">
-              FAZER TESTE PRA ZK ESPORTS - LAFF
-            </h2>
-          </div>
-          
-          <p className="text-zinc-300 text-sm md:text-base leading-relaxed mb-6">
-            Agende um horário de teste para entrar em uma das <span className="text-white font-bold">6 lines elites da ZK</span> (Apenas para os melhores). 
-            Receba e participe de treinos elites, campeonatos como <span className="text-yellow-400 font-bold">GWL, All Win, Liga do Rei</span>, 
-            e ainda trabalhe e evolua com o acompanhamento do coach <span className="text-white font-bold">izuki.x</span> dentro do ambiente dos 60 ZKs!
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-black mb-4 text-white">
+            Mentoria ou Pro Level
+          </h1>
+          <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
+            Evolua no Free Fire. Escolha a modalidade ideal para o seu objetivo competitivo.
           </p>
-          
-          <a 
-            href={LINK_TESTE_ZK}
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="block w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black text-center py-4 rounded-xl transition text-lg shadow-lg hover:scale-[1.02] transform duration-200"
-          >
-            🎯 QUERO FAZER O TESTE AGORA
-          </a>
         </div>
 
-        {/* OUTRAS OPÇÕES DE MENTORIA (Mantendo o padrão profissional) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 hover:border-yellow-400/50 transition">
-            <h3 className="text-xl font-black text-white mb-3">🎯 Mentoria Individual</h3>
-            <p className="text-zinc-400 text-sm mb-4">
-              Análise detalhada das suas VODs, correção de posicionamento, gestão de utilitários e desenvolvimento de game sense.
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col hover:border-yellow-400/50 transition group">
+            <div className="text-4xl mb-4">🎯</div>
+            <h3 className="text-2xl font-black text-white mb-2">Mentoria Individual</h3>
+            <span className="inline-block bg-yellow-400/10 text-yellow-400 text-xs font-bold px-3 py-1 rounded-full w-fit mb-4">
+              TREINAMENTO EXCLUSIVO
+            </span>
+            <p className="text-zinc-400 text-sm mb-6 flex-grow leading-relaxed">
+              Foco 100% em você. Análise detalhada da sua gameplay, correção de erros mecânicos, posicionamento e um plano de evolução 100% personalizado para o seu estilo, além de acompanhamento extra e trabalho de mentalidade! (Estresse, pressão, nervosismo e muito mais)
             </p>
-            <a href={LINK_TESTE_ZK} className="text-yellow-400 font-bold text-sm hover:underline">
-              Saiba mais →
-            </a>
+            <Link href="/em-breve" className="w-full bg-zinc-800 hover:bg-yellow-400 hover:text-black text-white font-bold py-3 rounded-xl transition text-center">
+              Quero Mentoria Individual
+            </Link>
           </div>
 
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 hover:border-yellow-400/50 transition">
-            <h3 className="text-xl font-black text-white mb-3">👥 Mentoria de Time (Line)</h3>
-            <p className="text-zinc-400 text-sm mb-4">
-              Treinamento tático para sua line completa. Rotas de entrada, call de granada, sinergia de equipe e preparação para campeonatos.
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col hover:border-yellow-400/50 transition group">
+            <div className="text-4xl mb-4">🛡️</div>
+            <h3 className="text-2xl font-black text-white mb-2">Mentoria Coletiva</h3>
+            <span className="inline-block bg-yellow-400/10 text-yellow-400 text-xs font-bold px-3 py-1 rounded-full w-fit mb-4">
+              TREINAMENTO EXCLUSIVO
+            </span>
+            <p className="text-zinc-400 text-sm mb-6 flex-grow leading-relaxed">
+              Evolua com seu squad. Foco em melhorar o jogo completo, treinos específicos, análise de erros, rotação, comunicação, sistema de pressão, end game, quebras, sinergia de equipe e análise de replays de campeonatos e acompanhamento em treinos do dia a dia para dominar a LAFF e os amadores!
             </p>
-            <a href={LINK_TESTE_ZK} className="text-yellow-400 font-bold text-sm hover:underline">
-              Saiba mais →
-            </a>
+            <Link href="/em-breve" className="w-full bg-zinc-800 hover:bg-yellow-400 hover:text-black text-white font-bold py-3 rounded-xl transition text-center">
+              Quero Mentoria Coletiva
+            </Link>
+          </div>
+
+          <div className="bg-gradient-to-b from-zinc-900 to-black border border-yellow-600/50 rounded-2xl p-6 flex flex-col hover:border-yellow-400 transition group relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-yellow-400 text-black text-xs font-black px-3 py-1 rounded-bl-xl shadow-lg">
+              MAIS POPULAR
+            </div>
+            <div className="text-4xl mb-4"></div>
+            <h3 className="text-2xl font-black text-white mb-2">Pro Level</h3>
+            <span className="inline-block bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full w-fit mb-4">
+              TREINAMENTO EXCLUSIVO
+            </span>
+            <p className="text-zinc-400 text-sm mb-6 flex-grow leading-relaxed">
+              O método completo e definitivo. Testado e comprovado pelos ProPlayers da FFWS. Baseado em Pressão e acompanhamento exclusivo no Discord e Whatsapp, com técnicas e treinamentos avançados para dominar o FreeFire Profissional!
+              <br /><br />
+              Tanto mecânico + Sensi, Reversão de Rush, reposicionamento de Suportes, quanto trabalho mental sob pressão e muito mais.
+              <br /><br />
+              <span className="text-yellow-400 font-bold">Extras:</span> Acesso individual, comunidade exclusiva e atualizações constantes.
+            </p>
+            <Link href="/em-breve" className="w-full bg-gradient-to-r from-yellow-600 to-yellow-400 hover:from-yellow-500 hover:to-yellow-300 text-black font-black py-3 rounded-xl transition text-center shadow-lg shadow-yellow-900/50">
+              Acessar o Pro Level
+            </Link>
           </div>
 
         </div>
 
-        <p className="text-center text-zinc-600 text-xs mt-12 pb-6">
-          by Izuuki.x — LAFF Finder
+        <p className="text-center text-zinc-600 text-xs mt-16 pb-6">
+          by Izuuki.x — Transformando jogadores em profissionais.
         </p>
       </div>
     </main>
