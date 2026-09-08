@@ -7,7 +7,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywdkprIPjco6PAB-m9C
 const CHAVE_PIX = "izukianonimo@gmail.com"; 
 const ADMIN_WHATSAPP = "559984399514"; 
 
-// DADOS DOS PLANOS
+// DADOS DOS PLANOS ATUALIZADOS
 const planos = [
   {
     id: 1,
@@ -37,7 +37,7 @@ const planos = [
     preco: "49,90",
     beneficios: [
       "Prioridade Máxima (Pula a fila inteira)",
-      "Garantia de teste agendado em até 24 horas",
+      "Garantia de teste agendado em até 48 horas",
       "Feedback em Áudio/Vídeo (15min) pós-teste",
       "+1 Dia de Pro Level GRÁTIS",
       "Selo 'Candidato Elite' no seu perfil F/A"
@@ -128,7 +128,7 @@ export default function ListaEsperaPage() {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center p-6">
         <div className="text-center max-w-md w-full bg-zinc-900 border border-yellow-400/30 rounded-2xl p-8">
-          <div className="text-6xl mb-6"></div>
+          <div className="text-6xl mb-6">⏳</div>
           <h2 className="text-3xl font-black text-yellow-400 mb-4">Você está na Lista!</h2>
           <p className="text-zinc-300 text-lg mb-8 leading-relaxed">
             Acompanhe as lives e aguarde ser chamado.
@@ -138,7 +138,7 @@ export default function ListaEsperaPage() {
             </span>
           </p>
           <Link href="/mentoria" className="block w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black font-black py-4 rounded-xl hover:from-yellow-500 hover:to-yellow-300 transition mb-3 shadow-lg">
-             Ver Planos de Mentoria e Evolução
+            🚀 Ver Planos de Mentoria e Evolução
           </Link>
           <Link href="/" className="block w-full bg-zinc-800 text-zinc-300 font-bold py-3 rounded-xl hover:bg-zinc-700 transition text-sm">
             ← Voltar ao início
@@ -208,7 +208,7 @@ export default function ListaEsperaPage() {
                     <option value="">Selecione sua função</option>
                     <option>🟢 Rush 1</option>
                     <option>🟢 Rush 2</option>
-                    <option> Granadeiro</option>
+                    <option>🔵 Granadeiro</option>
                     <option>🟡 Suporte</option>
                     <option>🟣 IGL (Capitão)</option>
                   </select>
@@ -311,7 +311,7 @@ export default function ListaEsperaPage() {
                 onClick={handleSendReceipt}
                 className="w-full bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-xl transition text-lg flex items-center justify-center gap-2 shadow-lg shadow-green-900/50"
               >
-                📲 Enviar Comprovante no WhatsApp
+                 Enviar Comprovante no WhatsApp
               </button>
 
               <div className="bg-yellow-900/10 border border-yellow-600/30 rounded-lg p-4">
