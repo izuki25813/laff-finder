@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-// ⚠️ COLE AQUI A NOVA URL DO SEU APPS SCRIPT
-const SCRIPT_URL = "Cconst SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywdkprIPjco6PAB-m9Crnx-fLFxwzRSEoWt9ydPj5Z1qQJzYhIscz83ZXOiYFC4aD8gg/exec";; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywdkprIPjco6PAB-m9Crnx-fLFxwzRSEoWt9ydPj5Z1qQJzYhIscz83ZXOiYFC4aD8gg/exec";
 
 export default function FeedbackPage() {
   const [tipo, setTipo] = useState("Sugestão");
@@ -21,7 +20,7 @@ export default function FeedbackPage() {
     try {
       const res = await fetch(`${SCRIPT_URL}?sheet=FEEDBACKS`);
       const data = await res.json();
-      setFeedbacks(data.reverse()); // Mais recentes primeiro
+      setFeedbacks(data.reverse());
     } catch (error) {
       console.error("Erro ao buscar feedbacks:", error);
     } finally {
@@ -60,7 +59,7 @@ export default function FeedbackPage() {
       });
       const result = await res.json();
       if (result.status === 'success') {
-        fetchFeedbacks(); // Recarrega para mostrar novo contador
+        fetchFeedbacks();
       }
     } catch (error) {
       console.error("Erro ao votar:", error);
@@ -92,9 +91,9 @@ export default function FeedbackPage() {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center p-6">
         <div className="text-center max-w-md w-full">
-          <div className="text-6xl mb-4">💡</div>
+          <div className="text-6xl mb-4"></div>
           <h2 className="text-3xl font-black text-yellow-400 mb-4">Obrigado!</h2>
-          <p className="text-zinc-400 mb-8">Sua mensagem foi enviada com sucesso e já está visível no feed abaixo. Sua opinião ajuda a construir o melhor site da LAFF!</p>
+          <p className="text-zinc-400 mb-8">Sua mensagem foi enviada com sucesso e já está visível no feed abaixo.</p>
           <button onClick={() => setStatus("idle")} className="block w-full bg-yellow-400 text-black font-bold py-3 rounded-xl hover:bg-yellow-300 transition">
             Enviar outra mensagem
           </button>
@@ -118,7 +117,6 @@ export default function FeedbackPage() {
           <span className="text-xs text-zinc-500">⚠️ Seu Nick e Instagram serão exibidos publicamente.</span>
         </p>
 
-        {/* FORMULÁRIO */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-10">
           <h2 className="text-xl font-black mb-4 text-yellow-400">Deixe sua mensagem</h2>
           
@@ -166,8 +164,7 @@ export default function FeedbackPage() {
           </form>
         </div>
 
-        {/* FEED PÚBLICO */}
-        <h2 className="text-2xl font-black mb-4 text-white">📢 Feed da Comunidade</h2>
+        <h2 className="text-2xl font-black mb-4 text-white"> Feed da Comunidade</h2>
         
         {loadingFeed ? (
           <p className="text-zinc-500 text-center py-10 animate-pulse">Carregando feedbacks...</p>
@@ -176,7 +173,6 @@ export default function FeedbackPage() {
         ) : (
           <div className="space-y-4">
             {feedbacks.map((fb, index) => {
-              // O índice real na planilha (considerando que o array está invertido)
               const realIndex = feedbacks.length - 1 - index;
               const likes = fb.Likes || 0;
               const deslikes = fb.Deslikes || 0;
@@ -186,13 +182,15 @@ export default function FeedbackPage() {
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-2">
                       <span className={`text-xs font-black px-2 py-1 rounded ${fb.Tipo === 'Sugestão' ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'}`}>
-                        {fb.Tipo === 'Sugestão' ? '💡 SUGESTÃO' : '🐞 FEEDBACK'}
+                        {fb.Tipo === 'Sugestão' ? '💡 SUGESTÃO' : ' FEEDBACK'}
                       </span>
                       <div>
                         <p className="font-black text-white">{fb.Nick}</p>
-                        <a href={`https://instagram.com/${fb.Instagram.replace('@', '')}`} target="_blank" className="text-xs text-pink-400 hover:text-pink-300">
-                          📷 {fb.Instagram}
-                        </a>
+                        {fb.Instagram && (
+                          <a href={`https://instagram.com/${fb.Instagram.replace('@', '')}`} target="_blank" className="text-xs text-pink-400 hover:text-pink-300">
+                            📷 {fb.Instagram}
+                          </a>
+                        )}
                       </div>
                     </div>
                     <button onClick={() => handleDelete(realIndex)} className="text-zinc-600 hover:text-red-500 text-xs transition" title="Apagar (Admin)">
@@ -221,10 +219,6 @@ export default function FeedbackPage() {
             })}
           </div>
         )}
-
-        <p className="text-center text-zinc-600 text-xs mt-12 pb-6">
-          by Izuuki.x — LAFF Finder
-        </p>
       </div>
     </main>
   );
