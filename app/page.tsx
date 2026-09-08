@@ -84,7 +84,7 @@ export default function Home() {
               Participe de Xtreinos. Acesso a Coach e Dicas pra evoluir.
             </p>
 
-            {/* GRID COM 8 BOTÕES */}
+            {/* GRID COM 9 BOTÕES */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full max-w-6xl">
               
               {/* 1. Procurar */}
@@ -122,7 +122,7 @@ export default function Home() {
                 <span className="text-[10px] uppercase tracking-wider text-green-400 font-black">Grátis • YouTube • Sala Aérea</span>
               </a>
 
-              {/* 6. Teste ZK Esports (NOVO!) */}
+              {/* 6. Teste ZK Esports */}
               <Link href="/teste-zk" className="rounded-xl border-2 border-yellow-400 bg-gradient-to-br from-yellow-900/30 to-black px-6 py-5 font-bold text-white transition hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-400/20 flex flex-col items-center gap-2">
                 <span className="text-3xl">🏆</span>
                 <span>Teste ZK Esports</span>
@@ -141,6 +141,13 @@ export default function Home() {
                 <span className="text-3xl">💡</span>
                 <span>Sugestões e Feedbacks</span>
                 <span className="text-[10px] uppercase tracking-wider text-purple-400 font-black">Ajude a melhorar o site</span>
+              </Link>
+
+              {/* 9. Lista de Espera VIP (NOVO!) */}
+              <Link href="/lista-espera" className="rounded-xl border-2 border-green-500 bg-gradient-to-br from-green-900/30 to-black px-6 py-5 font-bold text-white transition hover:scale-[1.02] hover:shadow-lg hover:shadow-green-500/20 flex flex-col items-center gap-2">
+                <span className="text-3xl">🔒</span>
+                <span>Lista de Espera VIP</span>
+                <span className="text-[10px] uppercase tracking-wider text-green-400 font-black">Acesso Exclusivo ZK</span>
               </Link>
 
             </div>
