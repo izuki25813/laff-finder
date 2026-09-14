@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzdKS94B_pfhFz60ugR01gxUN45OkgzUy9_Nbhhcn0d49hDuMcuLkgFDpQxPK4BRh-Vag/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywdkprIPjco6PAB-m9Crnx-fLFxwzRSEoWt9ydPj5Z1qQJzYhIscz83ZXOiYFC4aD8gg/exec";
 
 export default function FeedbackPage() {
   const [tipo, setTipo] = useState("Sugestão");
@@ -20,15 +20,13 @@ export default function FeedbackPage() {
     try {
       const res = await fetch(`${SCRIPT_URL}?sheet=FEEDBACKS`);
       const data = await res.json();
-      
-      console.log("Feedbacks recebidos:", data); // DEBUG
-      
+
       const sorted = data.sort((a: any, b: any) => {
-        const likesA = parseInt(a.Likes || a.likes || 0);
-        const likesB = parseInt(b.Likes || b.likes || 0);
+        const likesA = parseInt(a.Likes) || 0;
+        const likesB = parseInt(b.Likes) || 0;
         return likesB - likesA;
       });
-      
+
       setFeedbacks(sorted);
     } catch (error) {
       console.error("Erro ao buscar feedbacks:", error);
@@ -118,17 +116,17 @@ export default function FeedbackPage() {
     <main className="min-h-screen bg-black text-white p-6 md:p-10">
       <div className="max-w-4xl mx-auto">
         <Link href="/" className="text-yellow-400 hover:underline mb-8 inline-block font-bold">← Voltar para o início</Link>
-        
+
         <h1 className="text-4xl font-black mb-2 text-white">💡 Sugestões e Feedbacks</h1>
         <p className="text-zinc-400 mb-8">
-          O LAFF Finder é feito pela comunidade.
+          O LAFF Finder é feito pela comunidade. Tem uma ideia? Achou um erro? Manda pra gente!
           <br/>
           <span className="text-xs text-zinc-500">⚠️ Os mais curtidos aparecem primeiro!</span>
         </p>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-10">
           <h2 className="text-xl font-black mb-4 text-yellow-400">Deixe sua mensagem</h2>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex gap-2 bg-black p-1 rounded-xl">
               <button type="button" onClick={() => setTipo("Sugestão")} className={`flex-1 py-3 rounded-lg font-bold transition ${tipo === "Sugestão" ? "bg-blue-600 text-white" : "text-zinc-500 hover:text-white"}`}>
@@ -140,41 +138,41 @@ export default function FeedbackPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input 
-                required 
-                value={form.nick} 
-                onChange={e => setForm({...form, nick: e.target.value})} 
-                placeholder="Seu Nick no Free Fire *" 
-                className="bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none" 
+              <input
+                required
+                value={form.nick}
+                onChange={e => setForm({...form, nick: e.target.value})}
+                placeholder="Seu Nick no Free Fire *"
+                className="bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
               />
-              <input 
-                required 
-                value={form.instagram} 
-                onChange={e => setForm({...form, instagram: e.target.value})} 
-                placeholder="Instagram (ex: @izuki.x) *" 
-                className="bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none" 
+              <input
+                required
+                value={form.instagram}
+                onChange={e => setForm({...form, instagram: e.target.value})}
+                placeholder="Instagram (ex: @izuki.x) *"
+                className="bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
               />
             </div>
 
-            <textarea 
-              required 
-              value={form.msg} 
-              onChange={e => setForm({...form, msg: e.target.value})} 
-              placeholder={tipo === "Sugestão" ? "Descreva sua ideia aqui..." : "Descreva o erro ou problema..."} 
-              rows={5} 
-              className="w-full bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none resize-none" 
+            <textarea
+              required
+              value={form.msg}
+              onChange={e => setForm({...form, msg: e.target.value})}
+              placeholder={tipo === "Sugestão" ? "Descreva sua ideia aqui..." : "Descreva o erro ou problema..."}
+              rows={5}
+              className="w-full bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none resize-none"
             />
 
             <button disabled={status === "sending"} className="w-full bg-yellow-400 text-black font-black py-4 rounded-xl hover:bg-yellow-300 transition disabled:bg-zinc-700 disabled:text-zinc-500">
               {status === "sending" ? "Enviando..." : "🚀 Enviar Mensagem"}
             </button>
-            
+
             {status === "error" && <p className="text-center text-red-500 font-bold">Erro ao enviar. Tente novamente.</p>}
           </form>
         </div>
 
-        <h2 className="text-2xl font-black mb-4 text-white">📢 Feed da Comunidade</h2>
-        
+        <h2 className="text-2xl font-black mb-4 text-white">🔥 Feed da Comunidade</h2>
+
         {loadingFeed ? (
           <p className="text-zinc-500 text-center py-10 animate-pulse">Carregando feedbacks...</p>
         ) : feedbacks.length === 0 ? (
@@ -182,22 +180,17 @@ export default function FeedbackPage() {
         ) : (
           <div className="space-y-4">
             {feedbacks.map((fb, index) => {
-              // Tenta vários nomes possíveis para a mensagem
-              const mensagem = fb.Mensagem || fb.mensagem || fb.Message || fb.message || fb.M || "Mensagem não disponível";
-              const instagram = fb.Instagram || fb.instagram || fb.Instagram || "";
-              const nick = fb.Nick || fb.nick || fb.N || "Anônimo";
-              const tipo = fb.Tipo || fb.tipo || fb.T || "Feedback";
-              const likes = parseInt(fb.Likes || fb.likes || fb.L || 0);
-              const deslikes = parseInt(fb.Deslikes || fb.deslikes || fb.D || 0);
+              const likes = parseInt(fb.Likes) || 0;
+              const deslikes = parseInt(fb.Deslikes) || 0;
 
               return (
-                <div key={index} className={`rounded-xl border p-5 ${tipo === 'Sugestão' ? 'bg-blue-950/20 border-blue-900/50' : 'bg-red-950/20 border-red-900/50'}`}>
+                <div key={index} className={`rounded-xl border p-5 ${fb.Tipo === 'Sugestão' ? 'bg-blue-950/20 border-blue-900/50' : 'bg-red-950/20 border-red-900/50'}`}>
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <span className={`text-xs font-black px-2 py-1 rounded ${tipo === 'Sugestão' ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'}`}>
-                        {tipo === 'Sugestão' ? '💡 SUGESTÃO' : ' FEEDBACK'}
+                      <span className={`text-xs font-black px-2 py-1 rounded ${fb.Tipo === 'Sugestão' ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'}`}>
+                        {fb.Tipo === 'Sugestão' ? '💡 SUGESTÃO' : '🐞 FEEDBACK'}
                       </span>
-                      <h3 className="text-lg font-black text-white">{nick}</h3>
+                      <h3 className="text-lg font-black text-white">{fb.Nick}</h3>
                       {likes > 0 && (
                         <span className="text-xs bg-yellow-400/20 text-yellow-400 px-2 py-1 rounded font-bold">
                           🔥 {likes} {likes === 1 ? 'curtida' : 'curtidas'}
@@ -205,28 +198,28 @@ export default function FeedbackPage() {
                       )}
                     </div>
                     <button onClick={() => handleDelete(index)} className="text-zinc-600 hover:text-red-500 text-xs transition" title="Apagar (Admin)">
-                      ️
+                      🗑️
                     </button>
                   </div>
 
-                  {instagram && (
-                    <a href={`https://instagram.com/${instagram.replace('@', '')}`} target="_blank" className="text-xs text-pink-400 hover:text-pink-300 inline-block mb-3">
-                      📷 {instagram}
+                  {fb.Instagram && (
+                    <a href={`https://instagram.com/${fb.Instagram.replace('@', '')}`} target="_blank" className="text-xs text-pink-400 hover:text-pink-300 inline-block mb-3">
+                      📸 {fb.Instagram}
                     </a>
                   )}
 
                   <div className="bg-black/30 rounded-lg p-3 mb-4">
-                    <p className="text-zinc-200 text-sm whitespace-pre-wrap">{mensagem}</p>
+                    <p className="text-zinc-200 text-sm whitespace-pre-wrap">{fb.Mensagem}</p>
                   </div>
 
                   <div className="flex gap-2">
-                    <button 
+                    <button
                       onClick={() => handleVote(index, 'like')}
                       className="flex items-center gap-2 bg-zinc-800 hover:bg-green-900/50 text-zinc-300 hover:text-green-400 px-4 py-2 rounded-lg text-sm font-bold transition"
                     >
-                       <span className="font-black">{likes}</span>
+                      👍 <span className="font-black">{likes}</span>
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleVote(index, 'deslike')}
                       className="flex items-center gap-2 bg-zinc-800 hover:bg-red-900/50 text-zinc-300 hover:text-red-400 px-4 py-2 rounded-lg text-sm font-bold transition"
                     >
