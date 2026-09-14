@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { APPS_SCRIPT_URL } from "@/lib/config";
 
 export default function CadastroClient() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
   const LINK_GRUPO_ZK = "https://chat.whatsapp.com/HwVlP9Ju0JKLLFRdKA10BG";
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyz-rSJihhg5mQ7gYyAfCNFEkCb5QYyOZFD__Hw0bj0FBWofka5OyOJkh85GvCFyFFhiQ/exec";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,7 +23,7 @@ export default function CadastroClient() {
     data.PerfilCompleto = data.Bio || data.Gameplay ? "Sim ⭐" : "Não";
 
     try {
-      const response = await fetch(SCRIPT_URL, {
+      const response = await fetch(APPS_SCRIPT_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

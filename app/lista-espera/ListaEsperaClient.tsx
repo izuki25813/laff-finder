@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywdkprIPjco6PAB-m9Crnx-fLFxwzRSEoWt9ydPj5Z1qQJzYhIscz83ZXOiYFC4aD8gg/exec";
+import { APPS_SCRIPT_URL } from "@/lib/config";
 const CHAVE_PIX = "izukianonimo@gmail.com";
 const ADMIN_WHATSAPP = "559984399514";
 
@@ -63,8 +62,9 @@ export default function ListaEsperaClient() {
     setSubmitting(true);
     const planoEscolhido = planos.find((p) => p.id === selectedPlan);
     try {
-      await fetch(SCRIPT_URL, {
+      await fetch(APPS_SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "join_waiting_list",
           nick: form.nick,

@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywdkprIPjco6PAB-m9Crnx-fLFxwzRSEoWt9ydPj5Z1qQJzYhIscz83ZXOiYFC4aD8gg/exec";
+import { APPS_SCRIPT_URL } from "@/lib/config";
 
 export default function FeedbackClient() {
   const [tipo, setTipo] = useState("Sugestão");
@@ -18,7 +17,7 @@ export default function FeedbackClient() {
 
   const fetchFeedbacks = async () => {
     try {
-      const res = await fetch(`${SCRIPT_URL}?sheet=FEEDBACKS`);
+      const res = await fetch(`${APPS_SCRIPT_URL}?sheet=FEEDBACKS`);
       const data = await res.json();
 
       const sorted = data.sort((a: any, b: any) => {
@@ -40,8 +39,9 @@ export default function FeedbackClient() {
     setStatus("sending");
 
     try {
-      await fetch(SCRIPT_URL, {
+      await fetch(APPS_SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "send_feedback",
           nick: form.nick,
@@ -60,8 +60,9 @@ export default function FeedbackClient() {
 
   const handleVote = async (index: number, tipoVoto: "like" | "deslike") => {
     try {
-      const res = await fetch(SCRIPT_URL, {
+      const res = await fetch(APPS_SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "vote_feedback", index: index, tipo: tipoVoto }),
       });
       const result = await res.json();
@@ -78,8 +79,9 @@ export default function FeedbackClient() {
     if (!senha) return;
 
     try {
-      const res = await fetch(SCRIPT_URL, {
+      const res = await fetch(APPS_SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "delete_feedback", index: index, senha: senha }),
       });
       const result = await res.json();

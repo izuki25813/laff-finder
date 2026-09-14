@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-
-const SCRIPT_URL = "COLE_AQUI_SUA_NOVA_URL_DO_APPS_SCRIPT";
+import { APPS_SCRIPT_URL } from "@/lib/config";
 
 export default function CompletClient() {
   const [activeTab, setActiveTab] = useState<"disponivel" | "precisando">("disponivel");
@@ -30,7 +29,7 @@ export default function CompletClient() {
 
   const fetchPosts = async () => {
     try {
-      const res = await fetch(`${SCRIPT_URL}?sheet=COMPLETS`);
+      const res = await fetch(`${APPS_SCRIPT_URL}?sheet=COMPLETS`);
       const data = await res.json();
 
       const cincoHorasEmMs = 5 * 60 * 60 * 1000;
@@ -51,7 +50,7 @@ export default function CompletClient() {
 
   const fetchPlayers = async () => {
     try {
-      const res = await fetch(SCRIPT_URL);
+      const res = await fetch(APPS_SCRIPT_URL);
       const data = await res.json();
       setPlayers(data);
     } catch (error) {
@@ -78,8 +77,9 @@ export default function CompletClient() {
     setMsg("");
 
     try {
-      await fetch(SCRIPT_URL, {
+      await fetch(APPS_SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "create_complet",
           tipo: activeTab,
@@ -108,8 +108,9 @@ export default function CompletClient() {
     if (!pinInput) return;
 
     try {
-      const res = await fetch(SCRIPT_URL, {
+      const res = await fetch(APPS_SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "delete_complet", nick: nick, pin: pinInput }),
       });
       const result = await res.json();
