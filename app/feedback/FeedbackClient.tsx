@@ -18,7 +18,9 @@ export default function FeedbackClient() {
   const fetchFeedbacks = async () => {
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?sheet=FEEDBACKS`);
+      console.log("[FeedbackClient] resposta bruta do fetch:", res);
       const data = await res.json();
+      console.log("[FeedbackClient] JSON recebido:", data);
 
       const sorted = data.sort((a: any, b: any) => {
         const likesA = parseInt(a.Likes) || 0;
@@ -28,7 +30,8 @@ export default function FeedbackClient() {
 
       setFeedbacks(sorted);
     } catch (error) {
-      console.error("Erro ao buscar feedbacks:", error);
+      console.error("[FeedbackClient] Erro ao buscar feedbacks:", error);
+      console.log("[FeedbackClient] catch error:", error);
     } finally {
       setLoadingFeed(false);
     }
@@ -41,7 +44,6 @@ export default function FeedbackClient() {
     try {
       await fetch(APPS_SCRIPT_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "send_feedback",
           nick: form.nick,
@@ -62,7 +64,6 @@ export default function FeedbackClient() {
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "vote_feedback", index: index, tipo: tipoVoto }),
       });
       const result = await res.json();
@@ -81,7 +82,6 @@ export default function FeedbackClient() {
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "delete_feedback", index: index, senha: senha }),
       });
       const result = await res.json();

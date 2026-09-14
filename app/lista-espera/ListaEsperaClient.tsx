@@ -64,7 +64,6 @@ export default function ListaEsperaClient() {
     try {
       await fetch(APPS_SCRIPT_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "join_waiting_list",
           nick: form.nick,
