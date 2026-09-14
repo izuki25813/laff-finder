@@ -28,9 +28,10 @@ const parseCSV = (str: string) => {
 export default function ProcurarPage() {
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState(false);
   const [filtroFuncao, setFiltroFuncao] = useState("");
   const [filtroPlataforma, setFiltroPlataforma] = useState("");
-  
+
   // 🎯 MONTADOR DE TIMES
   const [qtdVagas, setQtdVagas] = useState(0);
   const [vagas, setVagas] = useState<string[]>([]);
@@ -39,15 +40,27 @@ export default function ProcurarPage() {
     async function fetchData() {
       try {
         const response = await fetch(CSV_URL);
+
+        if (!response.ok) {
+          throw new Error(`Falha ao buscar planilha: status ${response.status}`);
+        }
+
         const text = await response.text();
+
+        // Se o Google devolver uma página de login/HTML em vez de CSV,
+        // significa que a planilha não está pública.
+        if (text.trim().startsWith("<")) {
+          throw new Error("A planilha não parece estar pública (recebido HTML em vez de CSV).");
+        }
+
         const rows = parseCSV(text);
-        const headers = rows[0];
-        const data = [];
+        const headers = rows[0].map((h) => h.trim());
+        const data: any[] = [];
 
         for (let i = 1; i < rows.length; i++) {
           const obj: any = {};
           headers.forEach((header, index) => {
-            obj[header] = rows[i][index] || "";
+            obj[header] = (rows[i][index] || "").trim();
           });
           if (obj.Nick && obj.Nick.trim() !== "") {
             data.push(obj);
@@ -56,6 +69,7 @@ export default function ProcurarPage() {
         setPlayers(data.reverse());
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
+        setErro(true);
       } finally {
         setLoading(false);
       }
@@ -64,7 +78,7 @@ export default function ProcurarPage() {
   }, []);
 
   const formatWhatsAppLink = (phone: string) => {
-    const numbers = phone.replace(/\D/g, '');
+    const numbers = (phone || "").replace(/\D/g, '');
     const fullNumber = numbers.startsWith('55') ? numbers : '55' + numbers;
     return `https://wa.me/${fullNumber}`;
   };
@@ -106,19 +120,19 @@ export default function ProcurarPage() {
           Encontre o player ideal para completar sua line na LAFF.
         </p>
 
-        {/* 🎯 MONTADOR DE TIMES (NOVO!) */}
+        {/* 🎯 MONTADOR DE TIMES */}
         <div className="bg-gradient-to-br from-yellow-900/20 to-black border border-yellow-600/50 rounded-2xl p-6 mb-8">
           <h2 className="text-2xl font-black text-yellow-400 mb-4">🎯 Montador de Times</h2>
           <p className="text-zinc-400 mb-6">Quantas vagas você precisa preencher no seu time?</p>
-          
+
           <div className="flex gap-2 mb-6">
             {[1, 2, 3, 4].map((num) => (
               <button
                 key={num}
                 onClick={() => handleQtdVagasChange(num)}
                 className={`flex-1 py-3 rounded-lg font-bold transition ${
-                  qtdVagas === num 
-                    ? "bg-yellow-400 text-black" 
+                  qtdVagas === num
+                    ? "bg-yellow-400 text-black"
                     : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
                 }`}
               >
@@ -160,7 +174,7 @@ export default function ProcurarPage() {
                                 <p className="font-bold text-white">{player.Nick}</p>
                                 <p className="text-xs text-zinc-500">ID: {player.ID} • {player.Plataforma}</p>
                               </div>
-                              <a
+                              
                                 href={formatWhatsAppLink(player.Contato)}
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -184,14 +198,14 @@ export default function ProcurarPage() {
         <div className="mb-8">
           <h2 className="text-sm font-bold text-yellow-400 uppercase tracking-wider mb-3">🎯 O que você precisa no seu time?</h2>
           <div className="flex flex-wrap gap-2">
-            <button 
+            <button
               onClick={() => setFiltroFuncao("")}
               className={`px-4 py-2 rounded-lg font-bold text-sm transition ${filtroFuncao === "" ? "bg-yellow-400 text-black" : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"}`}
             >
               Ver todos
             </button>
             {roles.map((role) => (
-              <button 
+              <button
                 key={role}
                 onClick={() => setFiltroFuncao(role)}
                 className={`px-4 py-2 rounded-lg font-bold text-sm transition ${filtroFuncao === role ? "bg-yellow-400 text-black" : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"}`}
@@ -206,8 +220,8 @@ export default function ProcurarPage() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-8 flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <label className="block text-xs font-bold text-zinc-500 mb-1 uppercase">Filtrar por Plataforma</label>
-            <select 
-              value={filtroPlataforma} 
+            <select
+              value={filtroPlataforma}
               onChange={(e) => setFiltroPlataforma(e.target.value)}
               className="w-full bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
             >
@@ -225,6 +239,12 @@ export default function ProcurarPage() {
             <div className="text-4xl mb-4 animate-pulse">⏳</div>
             <p>Carregando o banco de talentos...</p>
           </div>
+        ) : erro ? (
+          <div className="text-center py-20 text-red-400">
+            <div className="text-4xl mb-4">⚠️</div>
+            <p className="font-bold mb-2">Não foi possível carregar o banco de jogadores agora.</p>
+            <p className="text-sm text-zinc-500">Tente novamente em instantes. Se persistir, avisa no Feedback.</p>
+          </div>
         ) : filteredPlayers.length === 0 ? (
           <div className="text-center py-20 text-zinc-500">
             <div className="text-4xl mb-4">😕</div>
@@ -234,7 +254,7 @@ export default function ProcurarPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredPlayers.map((player, index) => (
               <div key={index} className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-yellow-400/50 transition group flex flex-col">
-                
+
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="text-xl font-black text-white group-hover:text-yellow-400 transition">
@@ -268,7 +288,7 @@ export default function ProcurarPage() {
                 )}
 
                 <div className="border-t border-zinc-800 pt-4 mt-auto space-y-2">
-                  <a 
+                  
                     href={formatWhatsAppLink(player.Contato)}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -277,11 +297,11 @@ export default function ProcurarPage() {
                     <span>💬</span>
                     <span>Chamar no WhatsApp</span>
                   </a>
-                  
+
                   {player.Gameplay && player.Gameplay !== "Sem link" && (
-                    <a 
-                      href={player.Gameplay} 
-                      target="_blank" 
+                    
+                      href={player.Gameplay}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 text-xs text-red-400 hover:text-red-300 transition py-1"
                     >
