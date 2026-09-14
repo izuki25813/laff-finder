@@ -1,6 +1,9 @@
-"use client";
-
 import Link from "next/link";
+
+export const metadata = {
+  title: "Oportunidades | LAFF Finder",
+  description: "Acompanhe testes, peneiras e oportunidades da comunidade LAFF.",
+};
 
 export default function OportunidadesPage() {
   const oportunidades = [

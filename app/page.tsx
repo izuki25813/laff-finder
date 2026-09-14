@@ -120,17 +120,17 @@ export default function Home() {
                 <span className="text-[10px] uppercase tracking-wider text-green-400 font-black">Grátis • YouTube • Sala Aérea</span>
               </a>
 
-              {/* 6. Teste ZK Esports */}
-              <Link href="/teste-zk" className="rounded-xl border-2 border-yellow-400 bg-gradient-to-br from-yellow-900/30 to-black px-6 py-5 font-bold text-white transition hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-400/20 flex flex-col items-center gap-2">
+              {/* 6. Lista de espera ZK */}
+              <Link href="/lista-espera" className="rounded-xl border-2 border-yellow-400 bg-gradient-to-br from-yellow-900/30 to-black px-6 py-5 font-bold text-white transition hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-400/20 flex flex-col items-center gap-2">
                 <span className="text-3xl">🏆</span>
-                <span>Teste ZK Esports</span>
-                <span className="text-[10px] uppercase tracking-wider text-yellow-400 font-black">Entre nas 6 lines elites</span>
+                <span>Lista de espera ZK</span>
+                <span className="text-[10px] uppercase tracking-wider text-yellow-400 font-black">Acesso VIP • 6 lines elites</span>
               </Link>
 
-              {/* 7. Complet e Divulgação */}
+              {/* 7. Complete e Divulgação */}
               <Link href="/complet" className="rounded-xl border border-blue-900/50 bg-blue-950/30 px-6 py-5 font-bold text-white transition hover:bg-blue-900/50 hover:border-blue-500 flex flex-col items-center gap-2">
                 <span className="text-3xl">🤝</span>
-                <span>Complet e divulgação</span>
+                <span>Complete e divulgação</span>
                 <span className="text-[10px] uppercase tracking-wider text-blue-400 font-black">Completar Campeonato ou Xtreino</span>
               </Link>
 
