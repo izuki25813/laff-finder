@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { APPS_SCRIPT_URL } from "@/lib/config";
 
-console.log("[FeedbackClient] APPS_SCRIPT_URL importado:", APPS_SCRIPT_URL);
-
 export default function FeedbackClient() {
   const [tipo, setTipo] = useState("Sugestão");
   const [form, setForm] = useState({ nick: "", instagram: "", msg: "" });
@@ -19,12 +17,8 @@ export default function FeedbackClient() {
 
   const fetchFeedbacks = async () => {
     try {
-      const url = `${APPS_SCRIPT_URL}?sheet=FEEDBACKS`;
-      console.log("[FeedbackClient] URL sendo chamada:", url);
-      const res = await fetch(url);
-      console.log("[FeedbackClient] resposta bruta do fetch:", res);
+      const res = await fetch(`${APPS_SCRIPT_URL}?sheet=FEEDBACKS`);
       const data = await res.json();
-      console.log("[FeedbackClient] JSON recebido:", data);
 
       const sorted = data.sort((a: any, b: any) => {
         const likesA = parseInt(a.Likes) || 0;
@@ -34,8 +28,7 @@ export default function FeedbackClient() {
 
       setFeedbacks(sorted);
     } catch (error) {
-      console.error("[FeedbackClient] Erro ao buscar feedbacks:", error);
-      console.log("[FeedbackClient] catch error:", error);
+      console.error("Erro ao buscar feedbacks:", error);
     } finally {
       setLoadingFeed(false);
     }
