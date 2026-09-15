@@ -132,6 +132,9 @@ export default async function DashboardPage() {
                   <Link href="/meus-treinos" className="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 font-bold text-white">
                     Meus treinos
                   </Link>
+                  <Link href="/mentoria/diagnostico" className="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 font-bold text-white">
+                    Diagnóstico
+                  </Link>
                 </div>
               </div>
             ) : (

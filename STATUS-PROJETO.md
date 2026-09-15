@@ -2,11 +2,11 @@
 
 ## Última fase concluída
 
-Fase 9B.2 — Fundação do Diagnóstico
+Fase 9B.3 — Fluxo Funcional do Diagnóstico
 
 ## Fase em desenvolvimento
 
-Nenhuma. Fase 9B.3 ainda NÃO iniciada.
+Nenhuma. Fase 9B.4 ainda NÃO iniciada.
 
 ## Fases concluídas
 
@@ -21,6 +21,7 @@ Nenhuma. Fase 9B.3 ainda NÃO iniciada.
 9. Fase 9A — Fundação Comercial da Mentoria
 10. Fase 9B.1 — Fundação de Matrícula da Mentoria
 11. Fase 9B.2 — Fundação do Diagnóstico
+12. Fase 9B.3 — Fluxo Funcional do Diagnóstico
 
 ## Estado da Fase 9A
 
@@ -68,7 +69,22 @@ Fase 9B.2 concluída com sucesso.
 - nenhuma role MENTOR criada em profiles
 - nenhuma página, API ou componente de frontend foi criada nesta fase (fundação apenas no banco)
 - pagamento, checkout, agenda, notificações, evolução, gamificação e marketplace ainda NÃO implementados
-- Fase 9B.3 ainda NÃO iniciada
+
+## Estado da Fase 9B.3
+
+Fase 9B.3 concluída com sucesso.
+
+- rota funcional `/mentoria/diagnostico` (estática, com prioridade sobre `/mentoria/[slug]`)
+- API `app/api/diagnosticos` (POST, criação) e `app/api/diagnosticos/[id]` (POST, atualização de material)
+- tipos e helpers em `lib/diagnostics.ts` (status, parsing tolerante do `result` jsonb)
+- fluxo: verifica login -> verifica mentorship_enrollment ACTIVE do produto `diagnostic` -> permite criar/editar diagnostic_request -> exibe status e resultado
+- enrollment_id é sempre determinado pelo servidor a partir do usuário autenticado; o cliente nunca envia enrollment_id, student_id, mentor_id, result, completed_at ou status
+- proteção em duas camadas: checagens explícitas na API + RLS/trigger do banco (Fase 9B.2) como autoridade final
+- corrida de duplicidade (unique index em enrollment_id) tratada explicitamente (erro 23505 -> mensagem "já existe")
+- estados exibidos ao aluno: sem login, sem matrícula ativa, formulário de envio, pending, awaiting_info (editável), in_review (somente leitura), completed (com/sem result), cancelled
+- pequeno link adicionado no dashboard (`/mentoria/diagnostico`); `/mentoria` e `/mentoria/[slug]` não precisaram de alteração (CTA já apontava para a rota correta)
+- catálogo estático (`lib/mentorship.ts`) preservado; usado apenas para copy/preço, sem migração ampla
+- Fase 9B.4 ainda NÃO iniciada
 
 ## IMPORTANTE
 
@@ -78,11 +94,13 @@ Agenda/Google Calendar ainda não implementada.
 Notificações/WhatsApp ainda não implementadas.
 Dashboard completo ainda não implementado.
 Evolução, gamificação e marketplace ainda não implementados.
-Fase 9B.3 ainda NÃO iniciada.
+Upload/armazenamento de vídeo e IA de análise ainda não implementados (aluno só informa um link).
+`mentoring_products` ainda não possui nenhuma linha inserida no Supabase (Fase 9A criou apenas a estrutura) — até um ADMIN cadastrar o produto `diagnostic` e ativar uma matrícula manualmente, todo aluno verá "sem matrícula ativa", por design.
+Fase 9B.4 ainda NÃO iniciada.
 
 ## Banco
 
-Supabase configurado e validado para as Fases 9A, 9B.1 e 9B.2.
+Supabase configurado e validado para as Fases 9A, 9B.1 e 9B.2. Nenhuma alteração de banco foi feita na Fase 9B.3.
 
 Fases 1–8 possuem estrutura de banco correspondente.
 
@@ -90,18 +108,18 @@ O SQL das Fases 9A, 9B.1 e 9B.2 foi executado com sucesso no Supabase.
 
 ## Estado do código
 
-Resultado real registrado no fechamento da Fase 9B.2:
+Resultado real registrado no fechamento da Fase 9B.3:
 
 - build: OK
 - lint: OK
-- git status: em estado de fechamento da fase 9B.2
-- commit: feat: close phase 9b2 diagnostic foundation
+- git status: em estado de fechamento da fase 9B.3
+- commit: feat: implement phase 9b3 diagnostic flow
 - push: realizado
 - deploy: não validado automaticamente neste ambiente
 
 ## Observações
 
-- O catálogo público de mentoria continua em TypeScript nesta fase (lib/mentorship.ts); ainda não está conectado a mentoring_products/mentoring_plans/mentorship_enrollments/diagnostic_requests.
-- A base de dados no Supabase foi criada conforme a fundação comercial aprovada (9A), a fundação de matrícula (9B.1) e a fundação de diagnóstico (9B.2).
-- Fase 9B.3 não foi iniciada.
+- O catálogo público de mentoria continua em TypeScript nesta fase (lib/mentorship.ts) para copy/preço; a verificação de matrícula/diagnóstico já consulta o Supabase diretamente.
+- A base de dados no Supabase foi criada conforme a fundação comercial aprovada (9A), a fundação de matrícula (9B.1) e a fundação de diagnóstico (9B.2); a 9B.3 não alterou o schema.
+- Fase 9B.4 não foi iniciada.
 - Nenhuma alteração de arquitetura foi feita além do planejado para cada fase.
