@@ -2,7 +2,11 @@
 
 ## Última fase concluída
 
-Fase 9A — Fundação Comercial da Mentoria
+Fase 9B.2 — Fundação do Diagnóstico
+
+## Fase em desenvolvimento
+
+Nenhuma. Fase 9B.3 ainda NÃO iniciada.
 
 ## Fases concluídas
 
@@ -15,6 +19,8 @@ Fase 9A — Fundação Comercial da Mentoria
 7. Candidaturas
 8. Treinos
 9. Fase 9A — Fundação Comercial da Mentoria
+10. Fase 9B.1 — Fundação de Matrícula da Mentoria
+11. Fase 9B.2 — Fundação do Diagnóstico
 
 ## Estado da Fase 9A
 
@@ -31,37 +37,71 @@ Fase 9A concluída com sucesso.
 - Supabase deverá se tornar a fonte da verdade antes da integração de pagamento
 - Fase 9B ainda NÃO iniciada
 
+## Estado da Fase 9B.1
+
+Fase 9B.1 concluída com sucesso.
+
+- mentorship_enrollments criada em `supabase/phase-9b1-enrollments.sql`
+- estrutura ALUNO -> PRODUTO/PLANO -> MATRÍCULA -> STATUS criada
+- status permitidos: pending, active, completed, cancelled
+- RLS configurada: aluno vê apenas suas próprias matrículas; ADMIN visualiza e administra todas
+- trigger de validação (insert/update) e trigger de updated_at configurados, ambos idempotentes
+- student_id, product_id e plan_id imutáveis após a criação (inclusive para ADMIN/service role)
+- nenhuma role MENTOR criada em profiles
+- SQL executado com sucesso no Supabase
+- pagamento, checkout, agenda, notificações, diagnóstico completo, evolução, gamificação e marketplace ainda NÃO implementados
+
+## Estado da Fase 9B.2
+
+Fase 9B.2 concluída com sucesso.
+
+- diagnostic_requests criada e executada com sucesso no Supabase, em `supabase/phase-9b2-diagnostics.sql`
+- diagnóstico associado à matrícula (enrollment_id -> mentorship_enrollments), com índice único por enrollment_id
+- validação de matrícula ativa e de produto do tipo `diagnostic` (mentoring_products) na criação
+- status permitidos: pending, awaiting_info, in_review, completed, cancelled
+- RLS configurada: aluno vê e cria apenas seus próprios diagnósticos; ADMIN administra todos
+- id, created_at, student_id e enrollment_id imutáveis após a criação (inclusive para ADMIN/service role)
+- resultado do diagnóstico (result jsonb), status, mentor_id e completed_at protegidos contra alteração pelo aluno
+- aluno pode atualizar apenas gameplay_url, gameplay_title e context, enquanto status estiver em pending ou awaiting_info
+- mentor_id precisa apontar para mentor ativo em mentor_profiles, na criação e em qualquer atualização
+- completed_at preenchido automaticamente ao status entrar em completed
+- nenhuma role MENTOR criada em profiles
+- nenhuma página, API ou componente de frontend foi criada nesta fase (fundação apenas no banco)
+- pagamento, checkout, agenda, notificações, evolução, gamificação e marketplace ainda NÃO implementados
+- Fase 9B.3 ainda NÃO iniciada
+
 ## IMPORTANTE
 
-Nenhuma implementação funcional nova foi iniciada nesta etapa além da fundação comercial aprovada da Fase 9A.
-
 Pagamento ainda não implementado.
-Agenda ainda não implementada.
+Checkout, Stripe, Mercado Pago e Pix ainda não implementados.
+Agenda/Google Calendar ainda não implementada.
+Notificações/WhatsApp ainda não implementadas.
 Dashboard completo ainda não implementado.
-Evolução ainda não implementada.
+Evolução, gamificação e marketplace ainda não implementados.
+Fase 9B.3 ainda NÃO iniciada.
 
 ## Banco
 
-Supabase configurado e validado para a Fase 9A.
+Supabase configurado e validado para as Fases 9A, 9B.1 e 9B.2.
 
 Fases 1–8 possuem estrutura de banco correspondente.
 
-O SQL da Fase 9A foi executado com sucesso no Supabase.
+O SQL das Fases 9A, 9B.1 e 9B.2 foi executado com sucesso no Supabase.
 
 ## Estado do código
 
-Resultado real registrado:
+Resultado real registrado no fechamento da Fase 9B.2:
 
-- build: aprovado
-- lint: aprovado
-- git status: em estado de fechamento da fase 9A
-- commit: pendente da confirmação final
-- push: pendente da confirmação final
+- build: OK
+- lint: OK
+- git status: em estado de fechamento da fase 9B.2
+- commit: feat: close phase 9b2 diagnostic foundation
+- push: realizado
 - deploy: não validado automaticamente neste ambiente
 
 ## Observações
 
-- O catálogo público de mentoria continua em TypeScript nesta fase.
-- A base de dados no Supabase foi criada conforme a fundação comercial aprovada.
-- Fase 9B não foi iniciada.
-- Nenhuma alteração de arquitetura foi feita.
+- O catálogo público de mentoria continua em TypeScript nesta fase (lib/mentorship.ts); ainda não está conectado a mentoring_products/mentoring_plans/mentorship_enrollments/diagnostic_requests.
+- A base de dados no Supabase foi criada conforme a fundação comercial aprovada (9A), a fundação de matrícula (9B.1) e a fundação de diagnóstico (9B.2).
+- Fase 9B.3 não foi iniciada.
+- Nenhuma alteração de arquitetura foi feita além do planejado para cada fase.
