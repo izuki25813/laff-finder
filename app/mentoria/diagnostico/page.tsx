@@ -154,14 +154,15 @@ export default async function DiagnosticoPage({
               <CheckoutButton enrollmentId={pendingEnrollment.id} />
             </div>
           ) : !enrollment ? (
-            <div className="space-y-2 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+            <div className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
               <p className="text-sm font-bold text-white">
-                Você ainda não possui uma matrícula ativa para este diagnóstico.
+                Você ainda não possui uma matrícula para este diagnóstico.
               </p>
               <p className="text-sm text-zinc-400">
-                O diagnóstico é liberado assim que a sua matrícula for confirmada. Fale com a equipe LAFF Finder para saber
-                como ativá-la.
+                Inicie a compra abaixo. O diagnóstico é liberado automaticamente assim que o pagamento for
+                confirmado pelo Mercado Pago.
               </p>
+              <CheckoutButton label="Comprar diagnóstico" />
             </div>
           ) : !diagnosticRequest ? (
             <form
