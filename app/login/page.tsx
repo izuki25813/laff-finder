@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@/lib/auth";
+import { getSafeInternalPath } from "@/lib/safe-redirect";
 import { LoginForm } from "./LoginForm";
 
 export const metadata = {
@@ -8,12 +9,18 @@ export const metadata = {
   description: "Acesse sua conta LAFF Finder",
 };
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await getServerSession();
+  const paramsValue = (await searchParams) ?? {};
+  const next = getSafeInternalPath(paramsValue.next, "/dashboard");
 
   if (session) {
-    redirect("/dashboard");
+    redirect(next);
   }
 
-  return <LoginForm />;
+  return <LoginForm next={next} />;
 }

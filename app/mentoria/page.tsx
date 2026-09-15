@@ -56,7 +56,7 @@ export default function MentoriaPage() {
               Ver diagnóstico
             </Link>
             <Link
-              href="/login?callbackUrl=/mentoria"
+              href="/login?next=/mentoria"
               className="inline-flex items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-3 font-bold text-white transition hover:border-yellow-400 hover:text-yellow-300"
             >
               Entrar para contratar
@@ -105,7 +105,7 @@ export default function MentoriaPage() {
                 Solicitar diagnóstico
               </Link>
               <Link
-                href="/login?callbackUrl=/mentoria/diagnostico"
+                href="/login?next=/mentoria/diagnostico"
                 className="inline-flex items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-3 font-bold text-white transition hover:border-yellow-400 hover:text-yellow-300"
               >
                 Entrar para continuar
