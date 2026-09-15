@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 
 import {
+  getMercadoPagoPayment,
   getMercadoPagoConfigSummary,
   validateMercadoPagoWebhookSignature,
 } from "@/lib/mercado-pago";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -23,6 +25,15 @@ type ParsedWebhook = {
   action: string | null;
   paymentId: string | null;
   reference: string | null;
+};
+
+type InternalPayment = {
+  id: string;
+  enrollment_id: string;
+  gateway: string;
+  amount: number | string;
+  currency: string;
+  status: string;
 };
 
 function asNonEmptyString(value: unknown): string | null {
@@ -62,15 +73,35 @@ function isPaymentEvent(event: ParsedWebhook): boolean {
   return event.eventType === "payment" || event.action?.startsWith("payment.") === true;
 }
 
-function safeLog(event: ParsedWebhook, requestId: string | null, result: string) {
+function safeLog(
+  event: ParsedWebhook,
+  requestId: string | null,
+  result: string,
+  status: string | null = null,
+) {
   console.info("[mercado-pago-webhook]", {
     result,
     eventType: event.eventType,
     action: event.action,
     paymentId: event.paymentId,
+    status,
     referencePresent: Boolean(event.reference),
     requestId,
   });
+}
+
+function toCents(value: unknown): number | null {
+  const normalized =
+    typeof value === "number" && Number.isFinite(value) ? value.toFixed(2) : typeof value === "string" ? value.trim() : null;
+
+  if (!normalized || !/^\d+(?:\.\d{1,2})?$/.test(normalized)) {
+    return null;
+  }
+
+  const [whole, fraction = ""] = normalized.split(".");
+  const cents = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
+
+  return Number.isSafeInteger(cents) ? cents : null;
 }
 
 export async function POST(request: Request) {
@@ -145,11 +176,108 @@ export async function POST(request: Request) {
     );
   }
 
-  // Fase 10.5A: a notificação é autenticada e classificada, mas não há
-  // consulta server-side nem mutação de payment/enrollment nesta etapa.
-  safeLog(event, requestId, "accepted_for_later_processing");
-  return NextResponse.json(
-    { received: true, accepted: true },
-    { status: 202 },
-  );
+  let mercadoPagoPayment;
+  try {
+    mercadoPagoPayment = await getMercadoPagoPayment(event.paymentId);
+  } catch {
+    safeLog(event, requestId, "gateway_query_failed");
+    return NextResponse.json(
+      { received: false, error: "gateway_unavailable" },
+      { status: 500 },
+    );
+  }
+
+  const gatewayPaymentId = mercadoPagoPayment.id === undefined ? null : String(mercadoPagoPayment.id);
+  const gatewayStatus = mercadoPagoPayment.status ?? null;
+  const externalReference = mercadoPagoPayment.external_reference ?? null;
+
+  if (!gatewayPaymentId || gatewayPaymentId !== event.paymentId) {
+    safeLog(event, requestId, "gateway_payment_id_mismatch", gatewayStatus);
+    return NextResponse.json({ received: true, ignored: true }, { status: 200 });
+  }
+
+  if (!externalReference) {
+    safeLog(event, requestId, "missing_external_reference", gatewayStatus);
+    return NextResponse.json({ received: true, ignored: true }, { status: 200 });
+  }
+
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    safeLog(event, requestId, "database_unavailable", gatewayStatus);
+    return NextResponse.json(
+      { received: false, error: "database_unavailable" },
+      { status: 500 },
+    );
+  }
+
+  const { data: payment, error: paymentError } = await admin
+    .from("payments")
+    .select("id, enrollment_id, gateway, amount, currency, status")
+    .eq("id", externalReference)
+    .maybeSingle();
+
+  if (paymentError) {
+    safeLog(event, requestId, "database_query_failed", gatewayStatus);
+    return NextResponse.json(
+      { received: false, error: "database_unavailable" },
+      { status: 500 },
+    );
+  }
+
+  if (!payment) {
+    safeLog(event, requestId, "internal_payment_not_found", gatewayStatus);
+    return NextResponse.json({ received: true, ignored: true }, { status: 200 });
+  }
+
+  const internalPayment = payment as InternalPayment;
+  const internalAmountCents = toCents(internalPayment.amount);
+  const gatewayAmountCents = toCents(mercadoPagoPayment.transaction_amount);
+
+  if (internalPayment.id !== externalReference || internalPayment.gateway !== "mercado_pago") {
+    safeLog(event, requestId, "internal_payment_mismatch", gatewayStatus);
+    return NextResponse.json({ received: true, ignored: true }, { status: 200 });
+  }
+
+  if (
+    internalPayment.currency !== "BRL" ||
+    mercadoPagoPayment.currency_id !== "BRL" ||
+    internalAmountCents === null ||
+    gatewayAmountCents === null ||
+    internalAmountCents !== gatewayAmountCents
+  ) {
+    safeLog(event, requestId, "amount_or_currency_mismatch", gatewayStatus);
+    return NextResponse.json({ received: true, ignored: true }, { status: 200 });
+  }
+
+  if (internalPayment.status === "approved") {
+    safeLog(event, requestId, "already_processed", gatewayStatus);
+    return NextResponse.json({ received: true, alreadyProcessed: true }, { status: 200 });
+  }
+
+  if (internalPayment.status !== "pending" && internalPayment.status !== "processing") {
+    safeLog(event, requestId, "internal_payment_not_operational", gatewayStatus);
+    return NextResponse.json({ received: true, ignored: true }, { status: 200 });
+  }
+
+  if (gatewayStatus !== "approved") {
+    safeLog(event, requestId, "payment_not_approved", gatewayStatus);
+    return NextResponse.json({ received: true, processed: true }, { status: 200 });
+  }
+
+  const { error: approvalError } = await admin.rpc("mark_payment_approved", {
+    p_payment_id: internalPayment.id,
+    p_gateway_payment_id: gatewayPaymentId,
+    p_raw_webhook_payload: parsedBody,
+  });
+
+  if (approvalError) {
+    safeLog(event, requestId, "approval_failed", gatewayStatus);
+    return NextResponse.json(
+      { received: false, error: "approval_unavailable" },
+      { status: 500 },
+    );
+  }
+
+  safeLog(event, requestId, "payment_approved", gatewayStatus);
+  return NextResponse.json({ received: true, processed: true }, { status: 200 });
 }

@@ -15,8 +15,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 // Checkout Pro para ele.
 //
 // NÃO marca payment como approved. NÃO ativa enrollment. Isso continua
-// dependendo exclusivamente do webhook + mark_payment_approved() de uma
-// fase futura.
+// dependendo exclusivamente do webhook confirmado + mark_payment_approved().
 
 export type CheckoutErrorCode =
   | "unauthenticated"
@@ -234,7 +233,7 @@ export async function createMercadoPagoCheckout(userId: string, enrollmentId: st
             unit_price: itemAmount,
           },
         ],
-        // Correlação com o payment interno: o futuro webhook lê
+        // Correlação com o payment interno: o webhook lê
         // external_reference do pagamento confirmado no Mercado Pago
         // para encontrar esta linha em public.payments.
         external_reference: payment.id,
@@ -244,9 +243,7 @@ export async function createMercadoPagoCheckout(userId: string, enrollmentId: st
           pending: `${appUrl}/pagamento/pendente`,
         },
         auto_return: "approved",
-        // notification_url NÃO é definido nesta fase: não existe ainda
-        // nenhum endpoint de webhook no projeto, e apontar para uma rota
-        // inexistente seria pior do que simplesmente omitir o campo.
+        notification_url: `${appUrl}/api/webhooks/mercado-pago`,
       },
       requestOptions: {
         // Amarra a chamada ao Mercado Pago à nossa própria chave de

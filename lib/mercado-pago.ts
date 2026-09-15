@@ -1,6 +1,6 @@
 import "server-only";
 
-import { MercadoPagoConfig, WebhookSignatureValidator } from "mercadopago";
+import { MercadoPagoConfig, Payment, WebhookSignatureValidator } from "mercadopago";
 
 // Camada central server-only do Mercado Pago. Mantém a configuração do SDK
 // oficial e a validação da assinatura do webhook fora das rotas públicas.
@@ -51,13 +51,19 @@ export function validateMercadoPagoWebhookSignature(input: MercadoPagoWebhookSig
   });
 }
 
+export async function getMercadoPagoPayment(paymentId: string) {
+  const client = getMercadoPagoClient();
+  const payment = new Payment(client);
+
+  return payment.get({ id: paymentId });
+}
+
 let cachedClient: MercadoPagoConfig | null = null;
 
 /**
  * Inicializa (e reaproveita) o cliente oficial do Mercado Pago
  * (MercadoPagoConfig do pacote "mercadopago"). Não faz nenhuma chamada de
- * rede — só configura autenticação/timeout para uso por código de fases
- * futuras (checkout, webhook).
+ * rede — só configura autenticação/timeout para uso pelo checkout e webhook.
  *
  * Lança um erro claro só quando é efetivamente CHAMADA sem
  * MERCADO_PAGO_ACCESS_TOKEN configurado. Nunca falha só por este módulo
