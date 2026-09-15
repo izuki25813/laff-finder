@@ -1,10 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const SHEET_ID = "1jmohWo0KBC_HDW7j47efTMoVhdUG0dFdE3_c7oG-zmE";
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+
+type PlayerRecord = {
+  Nick?: string;
+  FuncaoPrincipal?: string;
+  Plataforma?: string;
+  ID?: string;
+  Contato?: string;
+  [key: string]: string | undefined;
+};
 
 const parseCSV = (str: string) => {
   const arr: string[][] = [];
@@ -55,7 +64,7 @@ const parseCSV = (str: string) => {
 };
 
 export default function ProcurarClient() {
-  const [players, setPlayers] = useState<any[]>([]);
+  const [players, setPlayers] = useState<PlayerRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(false);
   const [filtroFuncao, setFiltroFuncao] = useState("");
@@ -80,11 +89,11 @@ export default function ProcurarClient() {
         }
 
         const rows = parseCSV(text);
-        const headers = rows[0].map((h) => h.trim());
-        const data: any[] = [];
+        const headers = rows[0].map((header) => header.trim());
+        const data: PlayerRecord[] = [];
 
         for (let i = 1; i < rows.length; i++) {
-          const obj: any = {};
+          const obj: PlayerRecord = {};
           headers.forEach((header, index) => {
             obj[header] = (rows[i][index] || "").trim();
           });
@@ -124,16 +133,16 @@ export default function ProcurarClient() {
 
   const getJogadoresParaVaga = (funcao: string) => {
     if (!funcao) return [];
-    return players.filter((p) => p.FuncaoPrincipal?.includes(funcao));
+    return players.filter((player) => player.FuncaoPrincipal?.includes(funcao));
   };
 
-  const filteredPlayers = players.filter((p) => {
-    const matchFuncao = filtroFuncao ? p.FuncaoPrincipal?.includes(filtroFuncao) : true;
-    const matchPlataforma = filtroPlataforma ? p.Plataforma?.includes(filtroPlataforma) : true;
+  const filteredPlayers = players.filter((player) => {
+    const matchFuncao = filtroFuncao ? player.FuncaoPrincipal?.includes(filtroFuncao) : true;
+    const matchPlataforma = filtroPlataforma ? player.Plataforma?.includes(filtroPlataforma) : true;
     return matchFuncao && matchPlataforma;
   });
 
-  const roles = ["Rush 1", "Rush 2", "Granadeiro", "Suporte", "IGL (Capitão)"];
+  const roles = ["Rush 1", "Rush 2", "Granadeiro", "Suporte", "IGL (Capitão)"]; 
 
   return (
     <main className="min-h-screen bg-black text-white p-6 md:p-10">
@@ -202,7 +211,7 @@ export default function ProcurarClient() {
                               </div>
 
                               <a
-                                href={formatWhatsAppLink(player.Contato)}
+                                href={formatWhatsAppLink(player.Contato ?? "")}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="bg-green-600 hover:bg-green-500 text-white text-xs font-bold px-3 py-2 rounded-lg transition"
@@ -312,7 +321,7 @@ export default function ProcurarClient() {
 
                 <div className="border-t border-zinc-800 pt-4 mt-auto space-y-2">
                   <a
-                    href={formatWhatsAppLink(player.Contato)}
+                    href={formatWhatsAppLink(player.Contato ?? "")}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition text-sm flex items-center justify-center gap-2"

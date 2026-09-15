@@ -1,192 +1,151 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { APPS_SCRIPT_URL } from "@/lib/config";
+
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function CadastroClient() {
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const [errorMessage, setErrorMessage] = useState("");
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const LINK_GRUPO_ZK = "https://chat.whatsapp.com/HwVlP9Ju0JKLLFRdKA10BG";
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setStatus("submitting");
-    setErrorMessage("");
+    const supabase = createSupabaseBrowserClient();
 
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    const data: Record<string, string> = Object.fromEntries(formData.entries()) as Record<string, string>;
+    if (!supabase) {
+      setError("Configuração do Supabase não encontrada. Verifique as variáveis de ambiente.");
+      setLoading(false);
+      return;
+    }
 
-    data.Data = new Date().toLocaleString("pt-BR");
-    data.PerfilCompleto = data.Bio || data.Gameplay ? "Sim ⭐" : "Não";
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
 
-    try {
-      const response = await fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+    if (signUpError) {
+      setError(signUpError.message || "Não foi possível criar a conta.");
+      setLoading(false);
+      return;
+    }
 
-      if (!response.ok) {
-        throw new Error(`Falha ao enviar cadastro (${response.status})`);
+    if (signUpData.user) {
+      const { error: profileError } = await supabase.from("profiles").upsert(
+        {
+          id: signUpData.user.id,
+          email: signUpData.user.email,
+          full_name: signUpData.user.user_metadata?.full_name ?? null,
+          role: "USER",
+        },
+        { onConflict: "id" },
+      );
+
+      if (profileError) {
+        console.error("Profile creation failed", profileError);
+        setError("Conta criada, mas houve um problema ao registrar seu perfil. Tente entrar novamente.");
+        setLoading(false);
+        return;
       }
 
-      setStatus("success");
-    } catch (error) {
-      console.error("Erro ao cadastrar jogador:", error);
-      setStatus("error");
-      setErrorMessage("Não foi possível enviar o cadastro agora. Verifique sua conexão e tente novamente.");
+      setSuccess("Conta criada com sucesso! Você já pode entrar no painel.");
+      router.push("/dashboard");
+      router.refresh();
     }
-  };
 
-  if (status === "success") {
-    return (
-      <main className="min-h-screen bg-black text-white flex items-center justify-center p-6">
-        <div className="text-center max-w-md w-full">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-3xl font-black text-yellow-400 mb-4">Cadastro Realizado!</h2>
-          <p className="text-zinc-400 mb-8">
-            Seus dados foram enviados com sucesso para o banco do Izuuki.x.
-            <br /><br />
-            Agora, não fique de fora! Entre para a comunidade e fique por dentro das scales, treinos e novidades da LAFF.
-          </p>
-
-          <a
-            href={LINK_GRUPO_ZK}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-xl mb-4 transition text-lg flex items-center justify-center gap-2 shadow-lg shadow-green-900/50"
-          >
-            <span className="text-2xl">🚀</span> Entrar na Tropa do ZK
-          </a>
-
-          <Link
-            href="/"
-            className="block w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 rounded-xl transition text-sm"
-          >
-            Voltar ao início
-          </Link>
-
-          <p className="text-zinc-600 text-xs mt-8">by Izuuki.x — LAFF Finder</p>
-        </div>
-      </main>
-    );
-  }
-
-  if (status === "error") {
-    return (
-      <main className="min-h-screen bg-black text-white flex items-center justify-center p-6">
-        <div className="text-center max-w-md">
-          <div className="text-6xl mb-4">⚠️</div>
-          <h2 className="text-3xl font-black text-red-500 mb-4">Ops! Algo deu errado.</h2>
-          <p className="text-zinc-300 mb-6">{errorMessage || "Não foi possível concluir o cadastro neste momento."}</p>
-          <button onClick={() => setStatus("idle")} className="bg-zinc-700 text-white font-bold py-3 px-8 rounded-xl hover:bg-zinc-600 transition">
-            Tentar novamente
-          </button>
-        </div>
-      </main>
-    );
+    setLoading(false);
   }
 
   return (
-    <main className="min-h-screen bg-black text-white p-6 md:p-10">
-      <div className="max-w-2xl mx-auto">
-        <Link href="/" className="text-yellow-400 hover:underline mb-8 inline-block font-bold">← Voltar para o início</Link>
-        <h1 className="text-4xl font-black mb-1 text-white">Cadastrar Jogador</h1>
-        <form onSubmit={handleSubmit} className="space-y-10 mt-8">
-          <section>
-            <h2 className="text-lg font-bold text-yellow-400 mb-4">📋 Dados Básicos</h2>
-            <div className="space-y-4">
-              <input name="Nick" required placeholder="Nick no Free Fire *" className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition" />
-              <input name="ID" required placeholder="ID do Free Fire *" className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition" />
+    <main className="min-h-screen bg-black text-white">
+      <div className="mx-auto flex min-h-screen max-w-6xl items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-950 p-8 shadow-2xl shadow-yellow-500/10">
+          <div className="mb-8 text-center">
+            <p className="mb-3 text-xs font-black uppercase tracking-[0.3em] text-yellow-400">LAFF Finder</p>
+            <h1 className="text-3xl font-black">Criar conta</h1>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label htmlFor="email" className="mb-2 block text-sm font-medium text-zinc-300">
+                Email
+              </label>
               <input
-                name="Contato"
+                id="email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-yellow-400"
+                placeholder="seu@email.com"
                 required
-                type="tel"
-                placeholder="WhatsApp (ex: 11999999999) *"
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition"
               />
-              <p className="text-xs text-zinc-500">Digite apenas números com DDD (ex: 11999999999)</p>
             </div>
-          </section>
 
-          <section>
-            <h2 className="text-lg font-bold text-yellow-400 mb-4">🎮 Sobre o Jogador</h2>
-            <div className="space-y-4">
-              <select name="FuncaoPrincipal" required className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition">
-                <option value="">Função Principal *</option>
-                <option>Rush 1</option>
-                <option>Rush 2</option>
-                <option>Granadeiro</option>
-                <option>Suporte</option>
-                <option>IGL (Capitão)</option>
-              </select>
-              <select name="FuncaoSecundaria" className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition">
-                <option value="">Função Secundária</option>
-                <option>Rush 1</option>
-                <option>Rush 2</option>
-                <option>Granadeiro</option>
-                <option>Suporte</option>
-                <option>IGL (Capitão)</option>
-              </select>
-              <select name="Nivel" className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition">
-                <option value="">Nível</option>
-                <option>Iniciante</option>
-                <option>Intermediário</option>
-                <option>Avançado</option>
-                <option>Profissional</option>
-              </select>
-              <input name="Idade" type="number" placeholder="Idade" className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition" />
-              <input name="Gameplay" type="url" placeholder="Link de Gameplay (Opcional)" className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition" />
-              <textarea name="Bio" placeholder="Bio curta (Opcional)" className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition resize-none" rows={3} />
+            <div>
+              <label htmlFor="password" className="mb-2 block text-sm font-medium text-zinc-300">
+                Senha
+              </label>
+              <input
+                id="password"
+                type="password"
+                minLength={6}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-yellow-400"
+                placeholder="Mínimo 6 caracteres"
+                required
+              />
             </div>
-          </section>
 
-          <section>
-            <h2 className="text-lg font-bold text-yellow-400 mb-4">⏰ Disponibilidade</h2>
-            <div className="space-y-4">
-              <select name="Plataforma" required className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition">
-                <option value="">Plataforma *</option>
-                <option>Mobile</option>
-                <option>Emulador</option>
-                <option>Mobilador</option>
-              </select>
-              <input name="Horario" required placeholder="Horários disponíveis *" className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition" />
+            {error ? (
+              <div className="rounded-xl border border-red-500/50 bg-red-950/30 px-3 py-2 text-sm text-red-200">
+                {error}
+              </div>
+            ) : null}
+
+            {success ? (
+              <div className="rounded-xl border border-green-500/50 bg-green-950/30 px-3 py-2 text-sm text-green-200">
+                {success}
+              </div>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl bg-yellow-400 px-4 py-3 font-black text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Criando conta..." : "Criar conta"}
+            </button>
+          </form>
+
+          <div className="mt-6 space-y-3 text-sm text-zinc-300">
+            <div>
+              Já tem conta?{" "}
+              <Link href="/login" className="text-yellow-400 hover:text-yellow-300">
+                Fazer login
+              </Link>
             </div>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-yellow-400 mb-4">🎯 O que você procura?</h2>
-            <div className="space-y-4">
-              <select name="TemTime" required className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition">
-                <option value="">Tem time atual? *</option>
-                <option>Sim</option>
-                <option>Não</option>
-              </select>
-              <select name="Procura" required className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition">
-                <option value="">Está procurando *</option>
-                <option>Time completo</option>
-                <option>1 jogador específico</option>
-                <option>2 jogadores</option>
-                <option>Jogadores para completar meu time</option>
-              </select>
-              <select name="QtdJogadores" className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-yellow-400 transition">
-                <option value="">Quantos jogadores precisa?</option>
-                <option>1</option>
-                <option>2</option>
-                <option>3</option>
-                <option>4</option>
-                <option>5 (time completo)</option>
-              </select>
+            <div>
+              <Link href="/recuperar-senha" className="text-yellow-400 hover:text-yellow-300">
+                Esqueci minha senha
+              </Link>
             </div>
-          </section>
-
-          <button type="submit" disabled={status === "submitting"} className="w-full bg-yellow-400 text-black font-bold py-4 rounded-xl hover:bg-yellow-300 transition text-lg disabled:bg-zinc-700 disabled:text-zinc-400 disabled:cursor-not-allowed">
-            {status === "submitting" ? "Enviando dados..." : "🚀 Salvar Cadastro"}
-          </button>
-        </form>
-        <p className="text-center text-zinc-600 text-xs mt-8 pb-6">by Izuuki.x — LAFF Finder</p>
+            <div>
+              <Link href="/" className="text-zinc-400 hover:text-white">
+                Voltar para a home
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   );

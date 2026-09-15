@@ -1,16 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { APPS_SCRIPT_URL } from "@/lib/config";
+
+type PlayerRecord = {
+  Nick?: string;
+  FuncaoPrincipal?: string;
+  Contato?: string;
+  [key: string]: string | undefined;
+};
+
+type PostRecord = {
+  Data?: string;
+  Nick?: string;
+  Tipo?: string;
+  Funcao?: string;
+  Contato?: string;
+  [key: string]: string | undefined;
+};
 
 export default function CompletClient() {
   const [activeTab, setActiveTab] = useState<"disponivel" | "precisando">("disponivel");
-  const [posts, setPosts] = useState<any[]>([]);
+  const [posts, setPosts] = useState<PostRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
-  const [players, setPlayers] = useState<any[]>([]);
+  const [players, setPlayers] = useState<PlayerRecord[]>([]);
   const [form, setForm] = useState({
     nick: "",
     contato: "",
@@ -22,21 +39,16 @@ export default function CompletClient() {
     pin: "",
   });
 
-  useEffect(() => {
-    fetchPosts();
-    fetchPlayers();
-  }, []);
-
   const fetchPosts = async () => {
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?sheet=COMPLETS`);
-      const data = await res.json();
+      const data = (await res.json()) as PostRecord[];
 
       const cincoHorasEmMs = 5 * 60 * 60 * 1000;
       const agora = Date.now();
 
-      const postsValidos = data.filter((post: any) => {
-        const dataPost = new Date(post.Data).getTime();
+      const postsValidos = data.filter((post) => {
+        const dataPost = new Date(post.Data ?? Date.now()).getTime();
         return agora - dataPost < cincoHorasEmMs;
       });
 
@@ -51,16 +63,23 @@ export default function CompletClient() {
   const fetchPlayers = async () => {
     try {
       const res = await fetch(APPS_SCRIPT_URL);
-      const data = await res.json();
+      const data = (await res.json()) as PlayerRecord[];
       setPlayers(data);
     } catch (error) {
       console.error("Erro ao buscar jogadores:", error);
     }
   };
 
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    void fetchPosts();
+    void fetchPlayers();
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
   const handleNickChange = (nick: string) => {
-    setForm({ ...form, nick });
-    const playerEncontrado = players.find((p) => p.Nick?.toLowerCase() === nick.toLowerCase());
+    setForm((prev) => ({ ...prev, nick }));
+    const playerEncontrado = players.find((player) => player.Nick?.toLowerCase() === nick.toLowerCase());
     if (playerEncontrado) {
       setForm((prev) => ({
         ...prev,
@@ -71,8 +90,8 @@ export default function CompletClient() {
     }
   };
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setSubmitting(true);
     setMsg("");
 
@@ -94,8 +113,8 @@ export default function CompletClient() {
       });
       setMsg("✅ Postado com sucesso!");
       setForm({ nick: "", contato: "", hInicio: "", hFim: "", qtd: "1", funcao: "", desc: "", pin: "" });
-      fetchPosts();
-    } catch (error) {
+      await fetchPosts();
+    } catch {
       setMsg("❌ Erro ao postar.");
     } finally {
       setSubmitting(false);
@@ -103,23 +122,23 @@ export default function CompletClient() {
   };
 
   const handleDelete = async (nick: string) => {
-    const pinInput = prompt("Digite o PIN de 4 dígitos para apagar este post:");
+    const pinInput = window.prompt("Digite o PIN de 4 dígitos para apagar este post:");
     if (!pinInput) return;
 
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: "POST",
-        body: JSON.stringify({ action: "delete_complet", nick: nick, pin: pinInput }),
+        body: JSON.stringify({ action: "delete_complet", nick, pin: pinInput }),
       });
-      const result = await res.json();
+      const result = (await res.json()) as { status?: string };
       if (result.status === "deleted") {
-        alert("Post apagado com sucesso!");
-        fetchPosts();
+        window.alert("Post apagado com sucesso!");
+        await fetchPosts();
       } else {
-        alert("PIN ou Nick incorretos. Tente novamente.");
+        window.alert("PIN ou Nick incorretos. Tente novamente.");
       }
-    } catch (error) {
-      alert("Erro ao apagar.");
+    } catch {
+      window.alert("Erro ao apagar.");
     }
   };
 
@@ -130,7 +149,7 @@ export default function CompletClient() {
     return `https://wa.me/${fullNumber}`;
   };
 
-  const formatHorario = (horario: string) => {
+  const formatHorario = (horario?: string) => {
     if (!horario) return "";
     if (horario.includes("T")) {
       const date = new Date(horario);
@@ -231,7 +250,7 @@ export default function CompletClient() {
                       </div>
                       <p className="text-xs text-zinc-500 mt-1">{formatHorario(post.Data)}</p>
                     </div>
-                    <button onClick={() => handleDelete(post.Nick)} className="text-zinc-500 hover:text-red-500 text-xs font-bold">
+                    <button onClick={() => handleDelete(post.Nick ?? "")} className="text-zinc-500 hover:text-red-500 text-xs font-bold">
                       🗑️ Apagar
                     </button>
                   </div>

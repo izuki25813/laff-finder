@@ -2,9 +2,17 @@
 
 import Link from "next/link";
 import { useState } from "react";
+
 import { APPS_SCRIPT_URL } from "@/lib/config";
+
 const CHAVE_PIX = "izukianonimo@gmail.com";
 const ADMIN_WHATSAPP = "559984399514";
+
+type ErrorMap = {
+  nick?: string;
+  videoLink?: string;
+  whatsapp?: string;
+};
 
 const planos = [
   { id: 1, nome: "Acesso Padrão", preco: "19,90", beneficios: ["Análise das redes sociais", "Entrada na fila de testes (ordem de chegada)", "Acesso básico ao banco de dados"] },
@@ -18,10 +26,10 @@ export default function ListaEsperaClient() {
   const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [pixCopied, setPixCopied] = useState(false);
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<ErrorMap>({});
 
   const validateStep1 = () => {
-    const newErrors: any = {};
+    const newErrors: ErrorMap = {};
     if (!form.nick.trim()) newErrors.nick = "Nick é obrigatório";
     if (!form.videoLink.trim()) {
       newErrors.videoLink = "Link de vídeo é obrigatório";
@@ -48,11 +56,11 @@ export default function ListaEsperaClient() {
   const handleCopyPix = () => {
     navigator.clipboard.writeText(CHAVE_PIX);
     setPixCopied(true);
-    setTimeout(() => setPixCopied(false), 2000);
+    window.setTimeout(() => setPixCopied(false), 2000);
   };
 
   const handleSendReceipt = () => {
-    const planoEscolhido = planos.find((p) => p.id === selectedPlan);
+    const planoEscolhido = planos.find((plano) => plano.id === selectedPlan);
     const mensagem = `Olá Izuuki.x! Acabei de fazer o PIX para entrar na Lista de Espera VIP.\n\nPlano: ${planoEscolhido?.nome} (R$ ${planoEscolhido?.preco})\nMeu Nick: ${form.nick}\nMinha Função: ${form.funcao || "Não informada"}\n\nSegue o comprovante em anexo! 👇`;
     const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(mensagem)}`;
     window.open(url, "_blank");
@@ -60,7 +68,7 @@ export default function ListaEsperaClient() {
 
   const handleConfirmPayment = async () => {
     setSubmitting(true);
-    const planoEscolhido = planos.find((p) => p.id === selectedPlan);
+    const planoEscolhido = planos.find((plano) => plano.id === selectedPlan);
     try {
       await fetch(APPS_SCRIPT_URL, {
         method: "POST",
@@ -75,8 +83,8 @@ export default function ListaEsperaClient() {
         }),
       });
       setStep(4);
-    } catch (error) {
-      alert("Erro ao confirmar. Tente novamente.");
+    } catch {
+      window.alert("Erro ao confirmar. Tente novamente.");
     } finally {
       setSubmitting(false);
     }

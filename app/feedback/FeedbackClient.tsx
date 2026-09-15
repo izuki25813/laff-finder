@@ -1,28 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { APPS_SCRIPT_URL } from "@/lib/config";
+
+type FeedbackItem = {
+  Likes: string;
+  Deslikes: string;
+  Tipo: string;
+  Nick: string;
+  Instagram: string;
+  Mensagem: string;
+};
 
 export default function FeedbackClient() {
   const [tipo, setTipo] = useState("Sugestão");
   const [form, setForm] = useState({ nick: "", instagram: "", msg: "" });
   const [status, setStatus] = useState("idle");
-  const [feedbacks, setFeedbacks] = useState<any[]>([]);
+  const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
-
-  useEffect(() => {
-    fetchFeedbacks();
-  }, []);
 
   const fetchFeedbacks = async () => {
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?sheet=FEEDBACKS`);
-      const data = await res.json();
+      const data = (await res.json()) as FeedbackItem[];
 
-      const sorted = data.sort((a: any, b: any) => {
-        const likesA = parseInt(a.Likes) || 0;
-        const likesB = parseInt(b.Likes) || 0;
+      const sorted = [...data].sort((a, b) => {
+        const likesA = Number.parseInt(a.Likes, 10) || 0;
+        const likesB = Number.parseInt(b.Likes, 10) || 0;
         return likesB - likesA;
       });
 
@@ -34,8 +40,13 @@ export default function FeedbackClient() {
     }
   };
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchFeedbacks();
+  }, []);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setStatus("sending");
 
     try {
@@ -45,14 +56,14 @@ export default function FeedbackClient() {
           action: "send_feedback",
           nick: form.nick,
           instagram: form.instagram,
-          tipo: tipo,
+          tipo,
           msg: form.msg,
         }),
       });
       setStatus("success");
       setForm({ nick: "", instagram: "", msg: "" });
-      fetchFeedbacks();
-    } catch (error) {
+      await fetchFeedbacks();
+    } catch {
       setStatus("error");
     }
   };
@@ -61,9 +72,9 @@ export default function FeedbackClient() {
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: "POST",
-        body: JSON.stringify({ action: "vote_feedback", index: index, tipo: tipoVoto }),
+        body: JSON.stringify({ action: "vote_feedback", index, tipo: tipoVoto }),
       });
-      const result = await res.json();
+      const result = (await res.json()) as { status?: string };
       if (result.status === "success") {
         await fetchFeedbacks();
       }
@@ -73,23 +84,23 @@ export default function FeedbackClient() {
   };
 
   const handleDelete = async (index: number) => {
-    const senha = prompt("🔒 Digite a senha de administrador para apagar:");
+    const senha = window.prompt("🔒 Digite a senha de administrador para apagar:");
     if (!senha) return;
 
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: "POST",
-        body: JSON.stringify({ action: "delete_feedback", index: index, senha: senha }),
+        body: JSON.stringify({ action: "delete_feedback", index, senha }),
       });
-      const result = await res.json();
+      const result = (await res.json()) as { status?: string };
       if (result.status === "deleted") {
-        alert("✅ Feedback apagado com sucesso!");
-        fetchFeedbacks();
+        window.alert("✅ Feedback apagado com sucesso!");
+        await fetchFeedbacks();
       } else {
-        alert("❌ Senha incorreta!");
+        window.alert("❌ Senha incorreta!");
       }
-    } catch (error) {
-      alert("Erro ao apagar.");
+    } catch {
+      window.alert("Erro ao apagar.");
     }
   };
 
@@ -119,7 +130,7 @@ export default function FeedbackClient() {
         <h1 className="text-4xl font-black mb-2 text-white">💡 Sugestões e Feedbacks</h1>
         <p className="text-zinc-400 mb-8">
           O LAFF Finder é feito pela comunidade. Tem uma ideia? Achou um erro? Manda pra gente!
-          <br/>
+          <br />
           <span className="text-xs text-zinc-500">⚠️ Os mais curtidos aparecem primeiro!</span>
         </p>
 
@@ -140,14 +151,14 @@ export default function FeedbackClient() {
               <input
                 required
                 value={form.nick}
-                onChange={(e) => setForm({ ...form, nick: e.target.value })}
+                onChange={(event) => setForm({ ...form, nick: event.target.value })}
                 placeholder="Seu Nick no Free Fire *"
                 className="bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
               />
               <input
                 required
                 value={form.instagram}
-                onChange={(e) => setForm({ ...form, instagram: e.target.value })}
+                onChange={(event) => setForm({ ...form, instagram: event.target.value })}
                 placeholder="Instagram (ex: @izuki.x) *"
                 className="bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
               />
@@ -156,7 +167,7 @@ export default function FeedbackClient() {
             <textarea
               required
               value={form.msg}
-              onChange={(e) => setForm({ ...form, msg: e.target.value })}
+              onChange={(event) => setForm({ ...form, msg: event.target.value })}
               placeholder={tipo === "Sugestão" ? "Descreva sua ideia aqui..." : "Descreva o erro ou problema..."}
               rows={5}
               className="w-full bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none resize-none"
@@ -179,11 +190,11 @@ export default function FeedbackClient() {
         ) : (
           <div className="space-y-4">
             {feedbacks.map((fb, index) => {
-              const likes = parseInt(fb.Likes) || 0;
-              const deslikes = parseInt(fb.Deslikes) || 0;
+              const likes = Number.parseInt(fb.Likes, 10) || 0;
+              const deslikes = Number.parseInt(fb.Deslikes, 10) || 0;
 
               return (
-                <div key={index} className={`rounded-xl border p-5 ${fb.Tipo === "Sugestão" ? "bg-blue-950/20 border-blue-900/50" : "bg-red-950/20 border-red-900/50"}`}>
+                <div key={`${fb.Nick}-${index}`} className={`rounded-xl border p-5 ${fb.Tipo === "Sugestão" ? "bg-blue-950/20 border-blue-900/50" : "bg-red-950/20 border-red-900/50"}`}>
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3 flex-wrap">
                       <span className={`text-xs font-black px-2 py-1 rounded ${fb.Tipo === "Sugestão" ? "bg-blue-600 text-white" : "bg-red-600 text-white"}`}>
@@ -202,7 +213,7 @@ export default function FeedbackClient() {
                   </div>
 
                   {fb.Instagram && (
-                    <a href={`https://instagram.com/${fb.Instagram.replace("@", "")}`} target="_blank" className="text-xs text-pink-400 hover:text-pink-300 inline-block mb-3">
+                    <a href={`https://instagram.com/${fb.Instagram.replace("@", "")}`} target="_blank" rel="noreferrer" className="text-xs text-pink-400 hover:text-pink-300 inline-block mb-3">
                       📸 {fb.Instagram}
                     </a>
                   )}
@@ -224,10 +235,6 @@ export default function FeedbackClient() {
             })}
           </div>
         )}
-
-        <p className="text-center text-zinc-600 text-xs mt-12 pb-6">
-          by Izuuki.x — LAFF Finder
-        </p>
       </div>
     </main>
   );

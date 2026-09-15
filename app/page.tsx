@@ -1,18 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function Home() {
-  const [showGate, setShowGate] = useState(false);
-  const [clicouNoBotao, setClicouNoBotao] = useState(false);
-
-  useEffect(() => {
-    const jaSeInscreveu = localStorage.getItem("laff-finder-inscrito");
-    if (!jaSeInscreveu) {
-      setShowGate(true);
+  const [showGate, setShowGate] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
     }
-  }, []);
+
+    return !window.localStorage.getItem("laff-finder-inscrito");
+  });
+  const [clicouNoBotao, setClicouNoBotao] = useState(false);
 
   const handleInscrever = () => {
     window.open("https://www.youtube.com/@izuki.x?sub_confirmation=1", "_blank");
@@ -20,7 +19,7 @@ export default function Home() {
   };
 
   const handleEntrar = () => {
-    localStorage.setItem("laff-finder-inscrito", "true");
+    window.localStorage.setItem("laff-finder-inscrito", "true");
     setShowGate(false);
   };
 
