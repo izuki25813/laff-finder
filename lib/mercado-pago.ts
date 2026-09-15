@@ -1,11 +1,9 @@
 import "server-only";
 
-import { MercadoPagoConfig } from "mercadopago";
+import { MercadoPagoConfig, WebhookSignatureValidator } from "mercadopago";
 
-// Camada central do Mercado Pago (Fase 10.3). Prepara SOMENTE a
-// configuração/inicialização do SDK oficial para uso em fases futuras —
-// nenhuma chamada real à API do Mercado Pago é feita aqui, nenhum
-// checkout, nenhum webhook, nenhuma aprovação.
+// Camada central server-only do Mercado Pago. Mantém a configuração do SDK
+// oficial e a validação da assinatura do webhook fora das rotas públicas.
 //
 // "server-only" garante, em tempo de build, que este módulo nunca pode
 // ser importado (direta ou transitivamente) por um Client Component: se
@@ -29,6 +27,28 @@ export function getMercadoPagoConfigSummary(): MercadoPagoConfigSummary {
     hasPublicKey: Boolean(process.env.MERCADO_PAGO_PUBLIC_KEY),
     hasWebhookSecret: Boolean(process.env.MERCADO_PAGO_WEBHOOK_SECRET),
   };
+}
+
+export type MercadoPagoWebhookSignatureInput = {
+  xSignature: string | null;
+  xRequestId: string | null;
+  dataId: string | null;
+};
+
+export function validateMercadoPagoWebhookSignature(input: MercadoPagoWebhookSignatureInput): void {
+  const secret = process.env.MERCADO_PAGO_WEBHOOK_SECRET;
+
+  if (!secret) {
+    throw new Error("MERCADO_PAGO_WEBHOOK_SECRET não está configurado.");
+  }
+
+  WebhookSignatureValidator.validate({
+    xSignature: input.xSignature,
+    xRequestId: input.xRequestId,
+    dataId: input.dataId,
+    secret,
+    toleranceSeconds: 300,
+  });
 }
 
 let cachedClient: MercadoPagoConfig | null = null;
