@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { CheckoutButton } from "./CheckoutButton";
 import {
   DIAGNOSTIC_STATUS_LABELS,
   parseDiagnosticResult,
@@ -41,6 +42,7 @@ export default async function DiagnosticoPage({
   } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
 
   let enrollment: { id: string } | null = null;
+  let pendingEnrollment: { id: string } | null = null;
   let diagnosticRequest: DiagnosticRequestRow | null = null;
 
   if (supabase && user) {
@@ -63,6 +65,23 @@ export default async function DiagnosticoPage({
         .limit(1);
 
       enrollment = enrollments?.[0] ?? null;
+
+      if (!enrollment) {
+        // Sem matrícula ativa ainda: verifica se existe uma matrícula
+        // pending para oferecer o botão de pagamento (Fase 10.4). Isso
+        // não ativa nada — só localiza uma matrícula pending existente
+        // para permitir iniciar o checkout a partir dela.
+        const { data: pendingEnrollments } = await supabase
+          .from("mentorship_enrollments")
+          .select("id")
+          .eq("student_id", user.id)
+          .eq("status", "pending")
+          .in("product_id", diagnosticProductIds)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        pendingEnrollment = pendingEnrollments?.[0] ?? null;
+      }
     }
 
     if (enrollment) {
@@ -122,6 +141,17 @@ export default async function DiagnosticoPage({
               >
                 Entrar para continuar
               </Link>
+            </div>
+          ) : pendingEnrollment ? (
+            <div className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+              <p className="text-sm font-bold text-white">
+                Você tem uma matrícula pendente de pagamento para este diagnóstico.
+              </p>
+              <p className="text-sm text-zinc-400">
+                O diagnóstico é liberado assim que o pagamento for confirmado pelo Mercado Pago. A confirmação pode
+                levar alguns instantes após o pagamento.
+              </p>
+              <CheckoutButton enrollmentId={pendingEnrollment.id} />
             </div>
           ) : !enrollment ? (
             <div className="space-y-2 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
