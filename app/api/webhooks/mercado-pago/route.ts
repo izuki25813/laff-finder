@@ -57,10 +57,10 @@ function parseWebhook(value: unknown, request: Request): ParsedWebhook | null {
   const url = new URL(request.url);
   const eventType = asNonEmptyString(payload.type) ?? url.searchParams.get("type");
   const action = asNonEmptyString(payload.action) ?? url.searchParams.get("action");
-  const paymentId =
-    asNonEmptyString(payload.data?.id) ??
-    url.searchParams.get("data.id") ??
-    (eventType === "payment" ? asNonEmptyString(payload.id) : null);
+  const isPaymentNotification = eventType === "payment" || action?.startsWith("payment.") === true;
+  const paymentId = isPaymentNotification
+    ? url.searchParams.get("data.id")
+    : asNonEmptyString(payload.data?.id) ?? url.searchParams.get("data.id") ?? asNonEmptyString(payload.id);
   const reference =
     asNonEmptyString(payload.external_reference) ??
     asNonEmptyString(payload.preference_id) ??
@@ -166,6 +166,14 @@ export async function POST(request: Request) {
   if (!isPaymentEvent(event)) {
     safeLog(event, requestId, "ignored_event");
     return NextResponse.json({ received: true, ignored: true }, { status: 200 });
+  }
+
+  if (!signatureDataId || event.paymentId !== signatureDataId) {
+    safeLog(event, requestId, "payment_id_mismatch");
+    return NextResponse.json(
+      { received: false, error: "payment_id_mismatch" },
+      { status: 400 },
+    );
   }
 
   if (!event.paymentId) {
