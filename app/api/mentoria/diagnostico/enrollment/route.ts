@@ -33,7 +33,11 @@ function fail(error: EnsureEnrollmentErrorCode) {
   return NextResponse.json({ success: false, error, message }, { status });
 }
 
-export async function POST() {
+// O parâmetro existe só para deixar explícita, na assinatura da função,
+// a garantia de que a requisição HTTP não é lida: nenhum campo do body
+// (student_id, amount, status etc.) é ou pode ser usado por esta rota.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function POST(_request: Request) {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {

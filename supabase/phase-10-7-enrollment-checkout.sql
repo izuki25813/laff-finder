@@ -9,15 +9,73 @@
 -- pagamento, webhook, aprovação nem ativação — só a criação segura do
 -- enrollment pending que antecede o checkout já existente (Fase 10.4+).
 --
--- Idempotente: pode ser executada mais de uma vez sem efeito colateral
--- (create index if not exists / create or replace function). Não apaga
--- dados, não recria tabelas, não altera histórico existente.
+-- Idempotência CONDICIONAL: esta migration só é segura de (re)executar
+-- se o banco já estiver consistente. Ela agora abre com um preflight
+-- (seção 0) que verifica se já existem enrollments 'pending'/'active'
+-- duplicados para o mesmo student_id+product_id — uma condição que o
+-- índice único da seção 1 não pode assumir como verdadeira sem checar,
+-- já que a tabela existe desde a Fase 9B.1 sem essa restrição.
+-- - Banco consistente (nenhuma duplicidade operacional) -> a migration
+--   roda (ou re-roda) normalmente: cria o índice se não existir e faz
+--   create or replace da função, sem apagar nem alterar nenhum dado.
+-- - Banco inconsistente (alguma duplicidade já existente) -> o preflight
+--   levanta uma EXCEPTION explícita e a migration inteira aborta ANTES
+--   de tentar criar o índice ou a função — nenhuma alteração é aplicada.
+--   Resolver a duplicidade é uma decisão de negócio manual (esta
+--   migration nunca decide sozinha qual linha manter): NÃO faz DELETE
+--   nem UPDATE automático de dado histórico.
+
+-- =========================================================
+-- 0. PREFLIGHT: detectar duplicidade operacional já existente
+-- =========================================================
+-- O índice único da seção 1 assume que o banco já está consistente: no
+-- máximo um enrollment 'pending' OU 'active' por student_id+product_id.
+-- Sem esta checagem, se essa suposição for falsa o CREATE UNIQUE INDEX
+-- simplesmente falharia com um erro genérico do Postgres ("could not
+-- create unique index... duplicate key"), sem apontar quais linhas são
+-- o problema.
+--
+-- Este bloco verifica isso explicitamente ANTES de qualquer CREATE e
+-- aborta a migration inteira se encontrar qualquer duplicidade,
+-- informando student_id, product_id e quantidade de registros de cada
+-- grupo conflitante. Não apaga, não atualiza, não escolhe
+-- automaticamente qual linha manter — a decisão de qual enrollment
+-- duplicado é o "certo" é uma decisão de negócio que só um humano deve
+-- tomar, olhando caso a caso (ex.: qual pagamento está de fato em
+-- andamento).
+do $$
+declare
+  v_conflicts text;
+begin
+  select string_agg(
+    format('student_id=%s, product_id=%s, registros=%s', student_id, product_id, cnt),
+    E'\n'
+    order by cnt desc, student_id, product_id
+  )
+  into v_conflicts
+  from (
+    select student_id, product_id, count(*) as cnt
+    from public.mentorship_enrollments
+    where status in ('pending', 'active')
+      and product_id is not null
+    group by student_id, product_id
+    having count(*) > 1
+  ) duplicated;
+
+  if v_conflicts is not null then
+    raise exception
+      E'Migration abortada: existem enrollments operacionais (pending/active) duplicados para o mesmo student_id + product_id. Nenhuma alteração foi aplicada. Resolva manualmente qual registro deve permanecer pending/active (e mova os demais para cancelled, por exemplo) antes de reexecutar esta migration. Grupos conflitantes:\n%',
+      v_conflicts;
+  end if;
+end;
+$$;
 
 -- =========================================================
 -- 1. PROTEÇÃO DE CONCORRÊNCIA NO BANCO
 -- =========================================================
--- Impede duas matrículas "operacionais" (pending OU active) simultâneas
--- para o mesmo aluno + mesmo produto. Não afeta:
+-- Só é alcançado se o preflight acima não abortar. Impede duas
+-- matrículas "operacionais" (pending OU active) simultâneas para o
+-- mesmo aluno + mesmo produto, dali em diante. Não afeta:
 -- - enrollments de PLANO (plan_id preenchido, product_id null) — a
 --   condição "product_id is not null" exclui essas linhas do índice,
 --   então esta fase não muda nada para mentoria por plano;
@@ -44,10 +102,14 @@ create unique index if not exists idx_mentorship_enrollments_unique_operational_
 --
 -- Concorrência: duas chamadas simultâneas da mesma pessoa (duplo clique,
 -- duas abas) podem colidir no INSERT — o índice único da seção 1 rejeita
--- a segunda com unique_violation, capturada abaixo para retornar o
--- enrollment que "venceu" a corrida em vez de estourar erro para o
--- cliente (mesmo padrão já usado em lib/mercado-pago-checkout.ts para o
--- insert de payments concorrente).
+-- a segunda com unique_violation. O catch abaixo verifica, via
+-- GET STACKED DIAGNOSTICS, que a violação veio EXATAMENTE desse índice
+-- operacional antes de tratá-la como corrida esperada; qualquer outra
+-- unique_violation (de uma constraint diferente, hoje ou no futuro) é
+-- relançada sem tentar "adivinhar" um enrollment para devolver — mesmo
+-- espírito do padrão já usado em lib/mercado-pago-checkout.ts para o
+-- insert de payments concorrente, só que aqui checando explicitamente
+-- QUAL constraint disparou antes de assumir que é a corrida esperada.
 create or replace function public.ensure_diagnostic_enrollment()
 returns public.mentorship_enrollments
 language plpgsql
@@ -58,6 +120,7 @@ declare
   v_student_id uuid := auth.uid();
   v_product_id uuid;
   v_enrollment public.mentorship_enrollments%rowtype;
+  v_constraint_name text;
 begin
   if v_student_id is null then
     raise exception 'Usuário não autenticado.';
@@ -101,6 +164,17 @@ begin
     return v_enrollment;
   exception
     when unique_violation then
+      get stacked diagnostics v_constraint_name = constraint_name;
+
+      -- Só trata como "corrida esperada" (outra requisição concorrente
+      -- venceu) quando a violação é exatamente do índice operacional
+      -- desta fase. Uma unique_violation de qualquer outra constraint é
+      -- inesperada aqui e é relançada tal como veio, em vez de mascarada
+      -- por um retorno que poderia estar completamente errado.
+      if v_constraint_name is distinct from 'idx_mentorship_enrollments_unique_operational_per_student_product' then
+        raise;
+      end if;
+
       select * into v_enrollment
       from public.mentorship_enrollments
       where student_id = v_student_id
@@ -143,6 +217,8 @@ grant execute on function public.ensure_diagnostic_enrollment() to authenticated
 --    rodando normalmente sobre o INSERT feito dentro desta função —
 --    SECURITY DEFINER muda o papel usado para checagem de privilégio na
 --    função em si, não desliga triggers da tabela.
--- 5. Nenhuma tabela foi recriada, nenhum dado existente foi apagado ou
---    alterado por esta migration — apenas um índice novo (idempotente)
---    e uma função nova (idempotente via create or replace).
+-- 5. Nenhuma tabela foi recriada; nenhum dado existente é apagado ou
+--    alterado por esta migration em nenhum cenário — no caminho feliz
+--    ela só adiciona um índice novo e uma função nova (ambos
+--    idempotentes), e no caminho de inconsistência ela aborta antes de
+--    tocar em qualquer coisa.

@@ -29,8 +29,16 @@ const PENDING_ENROLLMENT = {
 
 const ACTIVE_ENROLLMENT = { ...PENDING_ENROLLMENT, id: "enrollment-active-1", status: "active" };
 
-function buildRequestWithBody(body: unknown): Request {
+function buildEnrollmentRequest(body?: unknown): Request {
   return new Request("https://laff-finder.example.com/api/mentoria/diagnostico/enrollment", {
+    method: "POST",
+    headers: body === undefined ? undefined : { "content-type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+}
+
+function buildCheckoutRequest(body: unknown): Request {
+  return new Request("https://laff-finder.example.com/api/checkout/mercado-pago", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
@@ -58,7 +66,7 @@ describe("POST /api/mentoria/diagnostico/enrollment — autenticação", () => {
       rpc,
     } as never);
 
-    const response = await ensureEnrollment();
+    const response = await ensureEnrollment(buildEnrollmentRequest());
 
     expect(response.status).toBe(401);
     expect(await response.json()).toEqual({
@@ -74,7 +82,7 @@ describe("POST /api/mentoria/diagnostico/enrollment — criação/recuperação"
   it("usuário autenticado sem enrollment: a RPC cria um novo pending e a rota devolve id/status", async () => {
     const rpc = mockAuthenticatedClient({ data: PENDING_ENROLLMENT, error: null });
 
-    const response = await ensureEnrollment();
+    const response = await ensureEnrollment(buildEnrollmentRequest());
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -89,8 +97,8 @@ describe("POST /api/mentoria/diagnostico/enrollment — criação/recuperação"
   it("enrollment pending já existente: a rota devolve o mesmo enrollment, sem criar um segundo", async () => {
     mockAuthenticatedClient({ data: PENDING_ENROLLMENT, error: null });
 
-    const first = await (await ensureEnrollment()).json();
-    const second = await (await ensureEnrollment()).json();
+    const first = await (await ensureEnrollment(buildEnrollmentRequest())).json();
+    const second = await (await ensureEnrollment(buildEnrollmentRequest())).json();
 
     // A RPC (mockada) é chamada duas vezes (duas requisições HTTP), mas
     // como ela é idempotente por construção (é o próprio banco que
@@ -103,7 +111,7 @@ describe("POST /api/mentoria/diagnostico/enrollment — criação/recuperação"
   it("enrollment active já existente: a rota devolve status active, sem tentar criar um pending", async () => {
     mockAuthenticatedClient({ data: ACTIVE_ENROLLMENT, error: null });
 
-    const response = await ensureEnrollment();
+    const response = await ensureEnrollment(buildEnrollmentRequest());
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
@@ -118,7 +126,7 @@ describe("POST /api/mentoria/diagnostico/enrollment — criação/recuperação"
       error: { message: "Produto de diagnóstico indisponível para matrícula no momento." },
     });
 
-    const response = await ensureEnrollment();
+    const response = await ensureEnrollment(buildEnrollmentRequest());
 
     expect(response.status).toBe(422);
     expect(await response.json()).toEqual({
@@ -131,7 +139,7 @@ describe("POST /api/mentoria/diagnostico/enrollment — criação/recuperação"
   it("erro inesperado da RPC → 500, sem vazar detalhe do banco na resposta", async () => {
     mockAuthenticatedClient({ data: null, error: { message: "relation does not exist: xyz_internal_table" } });
 
-    const response = await ensureEnrollment();
+    const response = await ensureEnrollment(buildEnrollmentRequest());
     const body = await response.json();
 
     expect(response.status).toBe(500);
@@ -141,22 +149,41 @@ describe("POST /api/mentoria/diagnostico/enrollment — criação/recuperação"
 });
 
 describe("POST /api/mentoria/diagnostico/enrollment — não confia em nada vindo do cliente", () => {
-  it("body com student_id/amount/status forjados é completamente ignorado: a RPC é chamada sem nenhum argumento", async () => {
+  it("body com student_id/amount/status forjados é completamente ignorado: nem influencia a chamada da RPC nem a resposta", async () => {
+    // Sessão mockada é de "user-1" e a RPC (mockada) devolve o enrollment
+    // pending real dessa sessão. O corpo da requisição tenta forjar um
+    // student_id de outra pessoa, um valor arbitrário e status "active".
     const rpc = mockAuthenticatedClient({ data: PENDING_ENROLLMENT, error: null });
+    const forgedRequest = buildEnrollmentRequest({
+      student_id: "attacker-user",
+      amount: 999999,
+      status: "active",
+    });
 
-    // A rota não lê request.json() em nenhum momento — mas simulamos um
-    // ataque explícito enviando um corpo malicioso mesmo assim, para
-    // provar que ele não influencia em nada o resultado.
-    await ensureEnrollment();
+    const response = await ensureEnrollment(forgedRequest);
+    const body = await response.json();
 
+    // A RPC é chamada exatamente com o nome da função, sem nenhum
+    // argumento adicional — nada do body chega até ela.
     expect(rpc).toHaveBeenCalledWith("ensure_diagnostic_enrollment");
+    expect(rpc).toHaveBeenCalledTimes(1);
     expect(rpc.mock.calls[0]).toHaveLength(1);
+
+    // A resposta reflete só o que a sessão mockada + a RPC determinaram
+    // (enrollment pending de "user-1"), nunca o que o body pediu.
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ success: true, enrollment: { id: PENDING_ENROLLMENT.id, status: "pending" } });
+    expect(JSON.stringify(body)).not.toMatch(/attacker-user/);
+    expect(JSON.stringify(body)).not.toMatch(/999999/);
+    // "active" enviado pelo cliente não vira o status da resposta: o
+    // enrollment continua "pending", exatamente o que a RPC devolveu.
+    expect(body.enrollment.status).toBe("pending");
   });
 
   it("a resposta de sucesso só contém success/enrollment.id/enrollment.status — nenhum outro campo do enrollment vaza", async () => {
     mockAuthenticatedClient({ data: PENDING_ENROLLMENT, error: null });
 
-    const response = await ensureEnrollment();
+    const response = await ensureEnrollment(buildEnrollmentRequest());
     const body = await response.json();
 
     expect(Object.keys(body)).toEqual(["success", "enrollment"]);
@@ -176,11 +203,11 @@ describe("Integração: ensure-enrollment -> checkout existente", () => {
       paymentId: "payment-1",
     });
 
-    const ensureResult = await (await ensureEnrollment()).json();
+    const ensureResult = await (await ensureEnrollment(buildEnrollmentRequest())).json();
     expect(ensureResult.success).toBe(true);
 
     const checkoutResponse = await createCheckout(
-      buildRequestWithBody({ enrollmentId: ensureResult.enrollment.id }),
+      buildCheckoutRequest({ enrollmentId: ensureResult.enrollment.id }),
     );
     const checkoutBody = await checkoutResponse.json();
 
