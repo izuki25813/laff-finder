@@ -127,13 +127,17 @@ export async function createMercadoPagoCheckout(userId: string, enrollmentId: st
     return fail("unavailable", "Integração de pagamento indisponível no momento.");
   }
 
-  // Reaproveita uma tentativa pending existente para este enrollment em
-  // vez de criar um payment novo a cada clique/retry/duplo clique.
+  // Reaproveita uma tentativa pending/processing existente para este
+  // enrollment em vez de criar um payment novo a cada clique/retry/duplo
+  // clique. "pending"/"processing" são os dois estados operacionais que
+  // o índice único parcial idx_payments_unique_operational_per_enrollment
+  // (correção pós-Fase 10.4) trata como mutuamente exclusivos por
+  // matrícula.
   const { data: existingPayments } = await admin
     .from("payments")
     .select("id, amount, gateway_preference_id")
     .eq("enrollment_id", enrollmentId)
-    .eq("status", "pending")
+    .in("status", ["pending", "processing"])
     .order("created_at", { ascending: false })
     .limit(1);
 
@@ -171,12 +175,39 @@ export async function createMercadoPagoCheckout(userId: string, enrollmentId: st
       .select("id, amount, gateway_preference_id")
       .single();
 
-    if (insertError || !inserted) {
-      logServerError("falha ao criar payment", insertError);
+    if (insertError) {
+      if (insertError.code === "23505") {
+        // Corrida: outra requisição concorrente criou o payment
+        // pending/processing para este enrollment entre a busca acima e
+        // este INSERT — o índice único parcial
+        // idx_payments_unique_operational_per_enrollment barrou a
+        // duplicata (isso é o esperado e correto). Reaproveita o payment
+        // que venceu a corrida em vez de falhar.
+        const { data: racedPayment } = await admin
+          .from("payments")
+          .select("id, amount, gateway_preference_id")
+          .eq("enrollment_id", enrollmentId)
+          .in("status", ["pending", "processing"])
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (!racedPayment) {
+          logServerError("unique_violation ao criar payment, mas nenhum payment concorrente encontrado", insertError);
+          return fail("persist_error", "Não foi possível iniciar o pagamento. Tente novamente.");
+        }
+
+        payment = racedPayment as PendingPaymentRow;
+      } else {
+        logServerError("falha ao criar payment", insertError);
+        return fail("persist_error", "Não foi possível iniciar o pagamento. Tente novamente.");
+      }
+    } else if (inserted) {
+      payment = inserted as PendingPaymentRow;
+    } else {
+      logServerError("insert de payment sem erro mas sem linha retornada", null);
       return fail("persist_error", "Não foi possível iniciar o pagamento. Tente novamente.");
     }
-
-    payment = inserted as PendingPaymentRow;
   }
 
   // Sempre usa o amount já persistido no payment (snapshot resolvido pelo
