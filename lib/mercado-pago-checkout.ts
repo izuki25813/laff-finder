@@ -37,6 +37,7 @@ export type CheckoutFailure = {
   success: false;
   error: CheckoutErrorCode;
   message: string;
+  details?: Record<string, unknown>;
 };
 
 export type CheckoutResult = CheckoutSuccess | CheckoutFailure;
@@ -93,7 +94,15 @@ export async function createMercadoPagoCheckout(userId: string, enrollmentId: st
     .maybeSingle();
 
   if (enrollmentError || !enrollment || enrollment.student_id !== userId) {
-    return fail("not_found", "Matrícula não encontrada.");
+    const details = {
+      enrollmentError: enrollmentError?.message ?? null,
+      enrollmentFound: !!enrollment,
+      enrollmentStudentId: enrollment?.student_id ?? null,
+      checkoutUserId: userId,
+      requestedEnrollmentId: enrollmentId,
+    };
+    console.error("[checkout] enrollment not found", details);
+    return fail("not_found", "Matrícula não encontrada.", details);
   }
 
   if (enrollment.status !== "pending") {
@@ -292,8 +301,8 @@ async function fetchExistingInitPoint(preferenceId: string): Promise<string | nu
   }
 }
 
-function fail(error: CheckoutErrorCode, message: string): CheckoutFailure {
-  return { success: false, error, message };
+function fail(error: CheckoutErrorCode, message: string, details?: Record<string, unknown>): CheckoutFailure {
+  return { success: false, error, message, details };
 }
 
 function logServerError(context: string, error: unknown) {

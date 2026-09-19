@@ -83,8 +83,9 @@ export async function POST(request: Request) {
   const result = await createMercadoPagoCheckout(user.id, body.enrollmentId);
 
   if (!result.success) {
+    const { details, ...errorResult } = result;
     return NextResponse.json(
-      { success: false, error: result.error, message: result.message },
+      { success: false, error: errorResult.error, message: errorResult.message, ...(details && { details }) },
       { status: ERROR_STATUS[result.error] ?? 400 },
     );
   }
