@@ -7,7 +7,6 @@ import { Preference } from "mercadopago";
 import { getMercadoPagoClient } from "@/lib/mercado-pago";
 import { resolvePlanById, resolveProductById } from "@/lib/payments";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // Orquestração do checkout Mercado Pago (Fase 10.4): cria/recupera um
 // payment pending para uma mentorship_enrollment pending já pertencente
@@ -79,17 +78,15 @@ export async function createMercadoPagoCheckout(userId: string, enrollmentId: st
     );
   }
 
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) {
-    return fail("unavailable", "Configuração do Supabase indisponível.");
+  // Usa admin client (service role) para buscar a matrícula, ignorando RLS.
+  // A validação de ownership (student_id === userId) é feita no código abaixo,
+  // garantindo segurança sem depender de política de linha.
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    return fail("unavailable", "Integração de pagamento indisponível no momento.");
   }
 
-  // Ownership + estado do enrollment via cliente com sessão do próprio
-  // usuário: a policy "mentorship_enrollments_select_own" (RLS) já só
-  // deixa enxergar matrículas do próprio auth.uid(). Um enrollmentId de
-  // outro usuário simplesmente não retorna linha nenhuma aqui — não
-  // revelamos se ele existe ou pertence a outra pessoa.
-  const { data: enrollment, error: enrollmentError } = await supabase
+  const { data: enrollment, error: enrollmentError } = await admin
     .from("mentorship_enrollments")
     .select("id, student_id, status, product_id, plan_id")
     .eq("id", enrollmentId)
@@ -116,14 +113,6 @@ export async function createMercadoPagoCheckout(userId: string, enrollmentId: st
   const resolvedPrice = Number(resolved.data.price);
   if (!Number.isFinite(resolvedPrice) || resolvedPrice <= 0) {
     return fail("product_unavailable", "Produto/plano sem preço válido.");
-  }
-
-  // A partir daqui a escrita em public.payments exige service role: a
-  // Fase 10.2 desenhou a tabela sem nenhuma policy de INSERT/UPDATE para
-  // usuário comum nem ADMIN, de propósito.
-  const admin = createSupabaseAdminClient();
-  if (!admin) {
-    return fail("unavailable", "Integração de pagamento indisponível no momento.");
   }
 
   // Reaproveita uma tentativa pending/processing existente para este

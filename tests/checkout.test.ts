@@ -27,19 +27,13 @@ vi.mock("@/lib/supabase/admin", () => ({
   createSupabaseAdminClient: vi.fn(),
 }));
 
-vi.mock("@/lib/supabase/server", () => ({
-  createSupabaseServerClient: vi.fn(),
-}));
-
 import { createMercadoPagoCheckout } from "@/lib/mercado-pago-checkout";
 import { resolveProductById, resolvePlanById } from "@/lib/payments";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const mockedResolveProductById = vi.mocked(resolveProductById);
 const mockedResolvePlanById = vi.mocked(resolvePlanById);
 const mockedCreateAdminClient = vi.mocked(createSupabaseAdminClient);
-const mockedCreateServerClient = vi.mocked(createSupabaseServerClient);
 
 const USER_ID = "user-1";
 const ENROLLMENT_ID = "enrollment-1";
@@ -57,12 +51,8 @@ function pendingEnrollment(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function mockServerClientWithEnrollment(enrollment: unknown) {
-  const from = makeFromQueue([makeQueryChain({ data: enrollment, error: null })]);
-  mockedCreateServerClient.mockResolvedValue({ from } as never);
-}
-
-function mockAdminWithFromQueue(chains: unknown[]) {
+function mockAdminWithEnrollment(enrollment: unknown, extraChains: unknown[] = []) {
+  const chains = [makeQueryChain({ data: enrollment, error: null }), ...extraChains];
   const admin = { from: makeFromQueue(chains) };
   mockedCreateAdminClient.mockReturnValue(admin as never);
   return admin;
@@ -82,11 +72,11 @@ describe("createMercadoPagoCheckout — autorização e estado do enrollment", (
     const result = await createMercadoPagoCheckout("", ENROLLMENT_ID);
 
     expect(result).toEqual({ success: false, error: "unauthenticated", message: expect.any(String) });
-    expect(mockedCreateServerClient).not.toHaveBeenCalled();
+    expect(mockedCreateAdminClient).not.toHaveBeenCalled();
   });
 
   it("enrollment de outro usuário não pode ser usado", async () => {
-    mockServerClientWithEnrollment(pendingEnrollment({ student_id: "outro-usuario" }));
+    mockAdminWithEnrollment(pendingEnrollment({ student_id: "outro-usuario" }));
 
     const result = await createMercadoPagoCheckout(USER_ID, ENROLLMENT_ID);
 
@@ -94,7 +84,7 @@ describe("createMercadoPagoCheckout — autorização e estado do enrollment", (
   });
 
   it("enrollment inexistente não pode ser usado", async () => {
-    mockServerClientWithEnrollment(null);
+    mockAdminWithEnrollment(null);
 
     const result = await createMercadoPagoCheckout(USER_ID, ENROLLMENT_ID);
 
@@ -102,7 +92,7 @@ describe("createMercadoPagoCheckout — autorização e estado do enrollment", (
   });
 
   it("enrollment que não está pending não gera checkout", async () => {
-    mockServerClientWithEnrollment(pendingEnrollment({ status: "active" }));
+    mockAdminWithEnrollment(pendingEnrollment({ status: "active" }));
 
     const result = await createMercadoPagoCheckout(USER_ID, ENROLLMENT_ID);
 
@@ -112,7 +102,7 @@ describe("createMercadoPagoCheckout — autorização e estado do enrollment", (
 
 describe("createMercadoPagoCheckout — produto/plano", () => {
   it("produto inativo/inválido não gera checkout", async () => {
-    mockServerClientWithEnrollment(pendingEnrollment());
+    mockAdminWithEnrollment(pendingEnrollment());
     mockedResolveProductById.mockResolvedValue({ ok: false, error: "inactive" });
 
     const result = await createMercadoPagoCheckout(USER_ID, ENROLLMENT_ID);
@@ -121,7 +111,7 @@ describe("createMercadoPagoCheckout — produto/plano", () => {
   });
 
   it("produto sem preço válido não gera checkout", async () => {
-    mockServerClientWithEnrollment(pendingEnrollment());
+    mockAdminWithEnrollment(pendingEnrollment());
     mockedResolveProductById.mockResolvedValue({
       ok: true,
       data: { id: PRODUCT_ID, slug: "diagnostico", name: "Diagnóstico", price: null } as never,
@@ -133,16 +123,15 @@ describe("createMercadoPagoCheckout — produto/plano", () => {
   });
 
   it("usa resolvePlanById quando o enrollment referencia um plano em vez de um produto", async () => {
-    mockServerClientWithEnrollment(pendingEnrollment({ product_id: null, plan_id: "plan-1" }));
-    mockedResolvePlanById.mockResolvedValue({
-      ok: true,
-      data: { id: "plan-1", slug: "plano-x", name: "Plano X", price: 299 } as never,
-    });
-    mockAdminWithFromQueue([
+    mockAdminWithEnrollment(pendingEnrollment({ product_id: null, plan_id: "plan-1" }), [
       makeQueryChain({ data: [], error: null }),
       makeQueryChain({ data: { id: PAYMENT_ID, amount: 299, gateway_preference_id: null }, error: null }),
       makeQueryChain({ data: null, error: null }),
     ]);
+    mockedResolvePlanById.mockResolvedValue({
+      ok: true,
+      data: { id: "plan-1", slug: "plano-x", name: "Plano X", price: 299 } as never,
+    });
     preferenceCreate.mockResolvedValue({ id: "pref-1", init_point: "https://mp.example/checkout/pref-1" });
 
     const result = await createMercadoPagoCheckout(USER_ID, ENROLLMENT_ID);
@@ -154,8 +143,7 @@ describe("createMercadoPagoCheckout — produto/plano", () => {
 
 describe("createMercadoPagoCheckout — preço e vínculo com o Mercado Pago", () => {
   it("o valor usado na preferência vem do payment persistido no banco, não de nenhum input do chamador", async () => {
-    mockServerClientWithEnrollment(pendingEnrollment());
-    mockAdminWithFromQueue([
+    mockAdminWithEnrollment(pendingEnrollment(), [
       makeQueryChain({ data: [], error: null }),
       makeQueryChain({ data: { id: PAYMENT_ID, amount: 199.9, gateway_preference_id: null }, error: null }),
       makeQueryChain({ data: null, error: null }),
@@ -178,8 +166,7 @@ describe("createMercadoPagoCheckout — preço e vínculo com o Mercado Pago", (
   });
 
   it("external_reference da preferência é o id do payment interno", async () => {
-    mockServerClientWithEnrollment(pendingEnrollment());
-    mockAdminWithFromQueue([
+    mockAdminWithEnrollment(pendingEnrollment(), [
       makeQueryChain({ data: [], error: null }),
       makeQueryChain({ data: { id: PAYMENT_ID, amount: 199.9, gateway_preference_id: null }, error: null }),
       makeQueryChain({ data: null, error: null }),
@@ -195,8 +182,7 @@ describe("createMercadoPagoCheckout — preço e vínculo com o Mercado Pago", (
 
   it("notification_url usa NEXT_PUBLIC_APP_URL", async () => {
     process.env.NEXT_PUBLIC_APP_URL = "https://app-de-teste.example.com";
-    mockServerClientWithEnrollment(pendingEnrollment());
-    mockAdminWithFromQueue([
+    mockAdminWithEnrollment(pendingEnrollment(), [
       makeQueryChain({ data: [], error: null }),
       makeQueryChain({ data: { id: PAYMENT_ID, amount: 199.9, gateway_preference_id: null }, error: null }),
       makeQueryChain({ data: null, error: null }),
@@ -221,7 +207,7 @@ describe("createMercadoPagoCheckout — preço e vínculo com o Mercado Pago", (
 
   it("sem NEXT_PUBLIC_APP_URL configurado, falha em vez de usar um fallback implícito", async () => {
     delete process.env.NEXT_PUBLIC_APP_URL;
-    mockServerClientWithEnrollment(pendingEnrollment());
+    mockAdminWithEnrollment(pendingEnrollment());
 
     const result = await createMercadoPagoCheckout(USER_ID, ENROLLMENT_ID);
 
@@ -257,8 +243,7 @@ describe("createMercadoPagoCheckout — preço e vínculo com o Mercado Pago", (
 
 describe("createMercadoPagoCheckout — reaproveitamento e concorrência", () => {
   it("reaproveita um payment pending/processing existente com preferência ainda válida, sem criar um novo payment", async () => {
-    mockServerClientWithEnrollment(pendingEnrollment());
-    mockAdminWithFromQueue([
+    mockAdminWithEnrollment(pendingEnrollment(), [
       makeQueryChain({
         data: [{ id: PAYMENT_ID, amount: 199.9, gateway_preference_id: "pref-existente" }],
         error: null,
@@ -278,9 +263,8 @@ describe("createMercadoPagoCheckout — reaproveitamento e concorrência", () =>
   });
 
   it("concorrência: uma corrida de INSERT (23505) reaproveita o payment que venceu, sem criar um segundo payment operacional", async () => {
-    mockServerClientWithEnrollment(pendingEnrollment());
     const racedPayment = { id: "payment-da-corrida", amount: 199.9, gateway_preference_id: null };
-    mockAdminWithFromQueue([
+    mockAdminWithEnrollment(pendingEnrollment(), [
       // 1) busca inicial: nenhum payment pending/processing ainda
       makeQueryChain({ data: [], error: null }),
       // 2) INSERT perde a corrida: índice único parcial barra a duplicata
