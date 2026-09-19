@@ -18,7 +18,7 @@ const productGroups = [
 ];
 
 export const metadata = {
-  title: "Mentoria | LAFF Finder",
+  title: "Mentoria | FINDER",
   description: "Diagnóstico e planos de mentoria para evolução competitiva no Free Fire.",
 };
 
@@ -40,13 +40,13 @@ export default function MentoriaPage() {
 
         <header className="mb-12 rounded-3xl border border-zinc-800 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black p-8 shadow-2xl shadow-yellow-500/5 md:p-10">
           <div className="mb-4 inline-flex items-center rounded-full border border-yellow-500/40 bg-yellow-400/10 px-3 py-1 text-xs font-black uppercase tracking-[0.25em] text-yellow-300">
-            mentoria LAFF finder
+            mentoria FINDER
           </div>
           <h1 className="max-w-3xl text-4xl font-black tracking-tight text-white md:text-6xl">
             Construção do player para chegar ao nível competitivo.
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-zinc-400">
-            A mentoria da LAFF Finder é pensada para quem quer evoluir com clareza, consistência e foco em desempenho real no Free Fire.
+            A mentoria do FINDER é pensada para quem quer evoluir com clareza, consistência e foco em desempenho real no Free Fire.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link

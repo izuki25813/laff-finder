@@ -7,7 +7,7 @@ import MeuTimeClient from "./MeuTimeClient";
 
 export const metadata = {
   title: "Meu time",
-  description: "Gerencie seu time em LAFF Finder",
+  description: "Gerencie seu time no FINDER",
 };
 
 export default async function MeuTimePage() {

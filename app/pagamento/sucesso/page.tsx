@@ -7,7 +7,7 @@ import Link from "next/link";
 // futura).
 
 export const metadata = {
-  title: "Pagamento em confirmação | LAFF Finder",
+  title: "Pagamento em confirmação | FINDER",
   description: "Retorno do checkout Mercado Pago.",
 };
 
@@ -16,7 +16,7 @@ export default function PagamentoSucessoPage() {
     <main className="min-h-screen bg-black text-white">
       <div className="mx-auto max-w-xl px-4 py-16 md:px-6">
         <div className="rounded-3xl border border-yellow-500/30 bg-zinc-950 p-8 text-center">
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">LAFF Finder</p>
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">FINDER</p>
           <h1 className="mt-3 text-2xl font-black text-white">Pagamento recebido pelo Mercado Pago</h1>
           <p className="mt-4 text-sm leading-6 text-zinc-300">
             O Mercado Pago indicou que o pagamento foi concluído. A confirmação definitiva ainda depende da

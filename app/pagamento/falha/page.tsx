@@ -4,7 +4,7 @@ import Link from "next/link";
 // NÃO lê query params do Mercado Pago e NÃO altera nenhum dado.
 
 export const metadata = {
-  title: "Pagamento não concluído | LAFF Finder",
+  title: "Pagamento não concluído | FINDER",
   description: "Retorno do checkout Mercado Pago.",
 };
 
@@ -13,7 +13,7 @@ export default function PagamentoFalhaPage() {
     <main className="min-h-screen bg-black text-white">
       <div className="mx-auto max-w-xl px-4 py-16 md:px-6">
         <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8 text-center">
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">LAFF Finder</p>
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">FINDER</p>
           <h1 className="mt-3 text-2xl font-black text-white">Pagamento não concluído</h1>
           <p className="mt-4 text-sm leading-6 text-zinc-300">
             O Mercado Pago indicou que o pagamento não foi concluído (recusado ou cancelado). Nenhum valor foi

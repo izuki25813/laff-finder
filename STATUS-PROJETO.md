@@ -1,4 +1,4 @@
-# LAFF FINDER — STATUS DO PROJETO
+# FINDER — STATUS DO PROJETO
 
 ## Última fase concluída
 

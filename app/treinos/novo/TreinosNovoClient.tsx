@@ -69,7 +69,7 @@ export default function TreinosNovoClient({ teams }: { teams: Array<{ id: string
       <div className="mx-auto max-w-4xl px-4 py-10 md:px-6">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">LAFF Finder</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">FINDER</p>
             <h1 className="mt-2 text-3xl font-black">Novo treino</h1>
           </div>
           <Link href="/treinos" className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 font-bold text-white">Voltar</Link>

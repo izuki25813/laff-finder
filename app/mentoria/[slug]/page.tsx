@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import { getMentorshipProductBySlug } from "@/lib/mentorship";
 
 export const metadata = {
-  title: "Detalhes do produto | LAFF Finder",
-  description: "Detalhes da mentoria e do diagnóstico do LAFF Finder.",
+  title: "Detalhes do produto | FINDER",
+  description: "Detalhes da mentoria e do diagnóstico do FINDER.",
 };
 
 export default async function MentorshipProductPage({

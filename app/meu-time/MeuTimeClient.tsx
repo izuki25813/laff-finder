@@ -144,7 +144,7 @@ export default function MeuTimeClient({ userId }: { userId: string }) {
     <div className="mx-auto max-w-5xl px-4 py-8 md:px-6">
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">LAFF Finder</p>
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">FINDER</p>
           <h1 className="mt-2 text-3xl font-black text-white">Meu Time</h1>
         </div>
         <div className="flex flex-wrap gap-3">

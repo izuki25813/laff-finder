@@ -7,7 +7,7 @@ import VagasClient from "./VagasClient";
 
 export const metadata = {
   title: "Vagas do time",
-  description: "Gerencie as vagas do seu time no LAFF Finder",
+  description: "Gerencie as vagas do seu time no FINDER",
 };
 
 export default async function VagasPage() {

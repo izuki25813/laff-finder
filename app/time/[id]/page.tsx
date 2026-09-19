@@ -28,7 +28,7 @@ export default async function TimePage({ params }: { params: Promise<{ id: strin
       <div className="mx-auto max-w-5xl px-4 py-10 md:px-6">
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">LAFF Finder</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">FINDER</p>
             <h1 className="mt-2 text-3xl font-black">Time</h1>
           </div>
 

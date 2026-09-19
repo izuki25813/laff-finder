@@ -60,7 +60,7 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-5xl px-6 py-12">
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">LAFF Finder</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">FINDER</p>
             <h1 className="mt-2 text-3xl font-black">Dashboard</h1>
           </div>
 

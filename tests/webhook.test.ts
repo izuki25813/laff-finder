@@ -39,7 +39,7 @@ const INTERNAL_PAYMENT_ID = "11111111-1111-1111-1111-111111111111";
 function buildWebhookRequest(options: BuildRequestOptions = {}): Request {
   const { dataId = "mp-payment-1", type = "payment", requestId = "req-1", signature = "v1=abc", body } = options;
 
-  const url = new URL("https://laff-finder.example.com/api/webhooks/mercado-pago");
+  const url = new URL("https://finder.example.com/api/webhooks/mercado-pago");
   if (dataId !== null) {
     url.searchParams.set("data.id", dataId);
   }

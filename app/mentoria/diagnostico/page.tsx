@@ -11,8 +11,8 @@ import { getMentorshipProductBySlug } from "@/lib/mentorship";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata = {
-  title: "Diagnóstico | LAFF Finder",
-  description: "Solicite e acompanhe seu diagnóstico de gameplay no LAFF Finder.",
+  title: "Diagnóstico | FINDER",
+  description: "Solicite e acompanhe seu diagnóstico de gameplay no FINDER.",
 };
 
 const STATUS_MESSAGES: Record<string, string> = {
@@ -23,6 +23,14 @@ const STATUS_MESSAGES: Record<string, string> = {
   "erro-link": "Informe o link do seu gameplay para continuar.",
   "nao-autorizado": "Você não está autorizado a realizar esta ação.",
   erro: "Não foi possível concluir a ação. Tente novamente.",
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  pending: "border-yellow-500/40 bg-yellow-500/10 text-yellow-300",
+  awaiting_info: "border-blue-500/40 bg-blue-500/10 text-blue-300",
+  in_review: "border-purple-500/40 bg-purple-500/10 text-purple-300",
+  completed: "border-green-500/40 bg-green-500/10 text-green-300",
+  cancelled: "border-zinc-600/40 bg-zinc-600/10 text-zinc-400",
 };
 
 export default async function DiagnosticoPage({
@@ -41,7 +49,7 @@ export default async function DiagnosticoPage({
     data: { user },
   } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
 
-  let enrollment: { id: string } | null = null;
+  let activeEnrollment: { id: string } | null = null;
   let pendingEnrollment: { id: string } | null = null;
   let diagnosticRequest: DiagnosticRequestRow | null = null;
 
@@ -55,7 +63,7 @@ export default async function DiagnosticoPage({
     const diagnosticProductIds = (diagnosticProducts ?? []).map((item) => item.id);
 
     if (diagnosticProductIds.length > 0) {
-      const { data: enrollments } = await supabase
+      const { data: activeEnrollments } = await supabase
         .from("mentorship_enrollments")
         .select("id")
         .eq("student_id", user.id)
@@ -64,18 +72,14 @@ export default async function DiagnosticoPage({
         .order("created_at", { ascending: false })
         .limit(1);
 
-      enrollment = enrollments?.[0] ?? null;
+      activeEnrollment = activeEnrollments?.[0] ?? null;
 
-      if (!enrollment) {
-        // Sem matrícula ativa ainda: verifica se existe uma matrícula
-        // pending para oferecer o botão de pagamento (Fase 10.4). Isso
-        // não ativa nada — só localiza uma matrícula pending existente
-        // para permitir iniciar o checkout a partir dela.
+      if (!activeEnrollment) {
         const { data: pendingEnrollments } = await supabase
           .from("mentorship_enrollments")
-          .select("id")
+          .select("id, status")
           .eq("student_id", user.id)
-          .eq("status", "pending")
+          .in("status", ["pending", "active"])
           .in("product_id", diagnosticProductIds)
           .order("created_at", { ascending: false })
           .limit(1);
@@ -84,11 +88,19 @@ export default async function DiagnosticoPage({
       }
     }
 
-    if (enrollment) {
+    if (activeEnrollment) {
       const { data: requestData } = await supabase
         .from("diagnostic_requests")
         .select("*")
-        .eq("enrollment_id", enrollment.id)
+        .eq("enrollment_id", activeEnrollment.id)
+        .maybeSingle();
+
+      diagnosticRequest = (requestData as DiagnosticRequestRow | null) ?? null;
+    } else if (pendingEnrollment) {
+      const { data: requestData } = await supabase
+        .from("diagnostic_requests")
+        .select("*")
+        .eq("enrollment_id", pendingEnrollment.id)
         .maybeSingle();
 
       diagnosticRequest = (requestData as DiagnosticRequestRow | null) ?? null;
@@ -102,7 +114,7 @@ export default async function DiagnosticoPage({
       <div className="mx-auto max-w-3xl px-4 py-10 md:px-6">
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">LAFF Finder</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">FINDER</p>
             <h1 className="mt-2 text-3xl font-black">Diagnóstico</h1>
           </div>
           <Link
@@ -133,7 +145,7 @@ export default async function DiagnosticoPage({
           ) : null}
 
           {!user ? (
-            <div className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+            <section className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
               <p className="text-sm text-zinc-300">Faça login para iniciar ou acompanhar o seu diagnóstico.</p>
               <Link
                 href="/login?next=/mentoria/diagnostico"
@@ -141,80 +153,79 @@ export default async function DiagnosticoPage({
               >
                 Entrar para continuar
               </Link>
-            </div>
-          ) : pendingEnrollment ? (
-            <div className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+            </section>
+          ) : activeEnrollment && !diagnosticRequest ? (
+            <section className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
               <p className="text-sm font-bold text-white">
-                Você tem uma matrícula pendente de pagamento para este diagnóstico.
+                Matrícula ativa confirmada. Envie o material do seu gameplay para iniciar o diagnóstico.
               </p>
+
+              <form action="/api/diagnosticos" method="POST" className="space-y-4">
+                <input type="hidden" name="next" value="/mentoria/diagnostico" />
+                <label className="block space-y-2 text-sm text-zinc-300">
+                  <span className="font-medium">Link do gameplay *</span>
+                  <input
+                    type="url"
+                    name="gameplay_url"
+                    required
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-yellow-400"
+                    placeholder="https://..."
+                  />
+                </label>
+
+                <label className="block space-y-2 text-sm text-zinc-300">
+                  <span className="font-medium">Título (opcional)</span>
+                  <input
+                    type="text"
+                    name="gameplay_title"
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-yellow-400"
+                    placeholder="Ex.: Ranked - partida decisiva"
+                  />
+                </label>
+
+                <label className="block space-y-2 text-sm text-zinc-300">
+                  <span className="font-medium">Contexto/observações (opcional)</span>
+                  <textarea
+                    name="context"
+                    rows={4}
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-yellow-400"
+                    placeholder="Conte um pouco sobre o que quer melhorar, dúvidas específicas, etc."
+                  />
+                </label>
+
+                <button
+                  type="submit"
+                  className="inline-flex rounded-xl bg-yellow-400 px-5 py-3 font-black text-black transition hover:bg-yellow-300"
+                >
+                  Enviar diagnóstico
+                </button>
+              </form>
+            </section>
+          ) : diagnosticRequest ? (
+            <DiagnosticRequestPanel diagnosticRequest={diagnosticRequest} result={result} />
+          ) : pendingEnrollment ? (
+            <section className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-[0.2em] border-yellow-500/40 bg-yellow-500/10 text-yellow-300">
+                  Pagamento pendente
+                </span>
+                <p className="text-sm font-bold text-white">Matrícula aguardando confirmação de pagamento</p>
+              </div>
               <p className="text-sm text-zinc-400">
-                O diagnóstico é liberado assim que o pagamento for confirmado pelo Mercado Pago. A confirmação pode
-                levar alguns instantes após o pagamento.
+                O diagnóstico será liberado automaticamente assim que o pagamento for confirmado pelo Mercado Pago.
+                A confirmação pode levar alguns instantes após o pagamento.
               </p>
               <CheckoutButton enrollmentId={pendingEnrollment.id} />
-            </div>
-          ) : !enrollment ? (
-            <div className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
-              <p className="text-sm font-bold text-white">
-                Você ainda não possui uma matrícula para este diagnóstico.
-              </p>
+            </section>
+          ) : (
+            <section className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+              <p className="text-sm font-bold text-white">Você ainda não possui uma matrícula para este diagnóstico.</p>
               <p className="text-sm text-zinc-400">
                 Inicie a compra abaixo. O diagnóstico é liberado automaticamente assim que o pagamento for
                 confirmado pelo Mercado Pago.
               </p>
               <CheckoutButton label="Comprar diagnóstico" />
-            </div>
-          ) : !diagnosticRequest ? (
-            <form
-              action="/api/diagnosticos"
-              method="POST"
-              className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-5"
-            >
-              <input type="hidden" name="next" value="/mentoria/diagnostico" />
-              <p className="text-sm font-bold text-white">
-                Matrícula ativa confirmada. Envie o material do seu gameplay para iniciar o diagnóstico.
-              </p>
-
-              <label className="block space-y-2 text-sm text-zinc-300">
-                <span className="font-medium">Link do gameplay *</span>
-                <input
-                  type="url"
-                  name="gameplay_url"
-                  required
-                  className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-yellow-400"
-                  placeholder="https://..."
-                />
-              </label>
-
-              <label className="block space-y-2 text-sm text-zinc-300">
-                <span className="font-medium">Título (opcional)</span>
-                <input
-                  type="text"
-                  name="gameplay_title"
-                  className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-yellow-400"
-                  placeholder="Ex.: Ranked - partida decisiva"
-                />
-              </label>
-
-              <label className="block space-y-2 text-sm text-zinc-300">
-                <span className="font-medium">Contexto/observações (opcional)</span>
-                <textarea
-                  name="context"
-                  rows={4}
-                  className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-yellow-400"
-                  placeholder="Conte um pouco sobre o que quer melhorar, dúvidas específicas, etc."
-                />
-              </label>
-
-              <button
-                type="submit"
-                className="inline-flex rounded-xl bg-yellow-400 px-5 py-3 font-black text-black transition hover:bg-yellow-300"
-              >
-                Enviar diagnóstico
-              </button>
-            </form>
-          ) : (
-            <DiagnosticRequestPanel diagnosticRequest={diagnosticRequest} result={result} />
+            </section>
           )}
         </article>
       </div>
@@ -230,6 +241,7 @@ function DiagnosticRequestPanel({
   result: DiagnosticResult | null;
 }) {
   const statusLabel = DIAGNOSTIC_STATUS_LABELS[diagnosticRequest.status] ?? diagnosticRequest.status;
+  const statusColor = STATUS_COLORS[diagnosticRequest.status] ?? STATUS_COLORS.pending;
   const canEdit = diagnosticRequest.status === "pending" || diagnosticRequest.status === "awaiting_info";
 
   return (
@@ -239,28 +251,28 @@ function DiagnosticRequestPanel({
           <p className="text-xs text-zinc-500">Status do diagnóstico</p>
           <p className="mt-1 text-lg font-black text-white">{statusLabel}</p>
         </div>
-        <span className="rounded-full border border-yellow-500/40 bg-yellow-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-300">
+        <span className={`inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] ${statusColor}`}>
           {diagnosticRequest.status}
         </span>
       </div>
 
-      {diagnosticRequest.status === "awaiting_info" ? (
-        <div className="rounded-xl border border-yellow-500/50 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-200">
+      {diagnosticRequest.status === "awaiting_info" && (
+        <div className="rounded-xl border border-blue-500/50 bg-blue-500/10 px-4 py-3 text-sm text-blue-200">
           O mentor solicitou mais informações. Atualize os dados abaixo e envie novamente.
         </div>
-      ) : null}
+      )}
 
-      {diagnosticRequest.status === "in_review" ? (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-zinc-300">
-          Seu diagnóstico está em análise. Você será avisado assim que o resultado estiver disponível.
+      {diagnosticRequest.status === "in_review" && (
+        <div className="rounded-xl border border-purple-500/50 bg-purple-500/10 px-4 py-3 text-sm text-purple-200">
+          Seu diagnóstico está em análise pelo mentor. Você será avisado assim que o resultado estiver disponível.
         </div>
-      ) : null}
+      )}
 
-      {diagnosticRequest.status === "cancelled" ? (
+      {diagnosticRequest.status === "cancelled" && (
         <div className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-zinc-300">
           Este diagnóstico foi cancelado.
         </div>
-      ) : null}
+      )}
 
       {canEdit ? (
         <form
@@ -311,23 +323,33 @@ function DiagnosticRequestPanel({
       ) : (
         <div className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-5 text-sm text-zinc-300">
           <p>
-            <span className="text-zinc-500">Link do gameplay:</span> {diagnosticRequest.gameplay_url ?? "—"}
+            <span className="text-zinc-500">Link do gameplay:</span>{" "}
+            {diagnosticRequest.gameplay_url ? (
+              <a href={diagnosticRequest.gameplay_url} target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:underline">
+                {diagnosticRequest.gameplay_url}
+              </a>
+            ) : (
+              "—"
+            )}
           </p>
-          {diagnosticRequest.gameplay_title ? (
+          {diagnosticRequest.gameplay_title && (
             <p>
               <span className="text-zinc-500">Título:</span> {diagnosticRequest.gameplay_title}
             </p>
-          ) : null}
-          {diagnosticRequest.context ? (
+          )}
+          {diagnosticRequest.context && (
             <p>
               <span className="text-zinc-500">Contexto:</span> {diagnosticRequest.context}
             </p>
-          ) : null}
+          )}
+          {diagnosticRequest.mentor_id && (
+            <p className="text-sm text-zinc-400">Mentor atribuído. Em análise.</p>
+          )}
         </div>
       )}
 
-      {diagnosticRequest.status === "completed" ? (
-        <div className="space-y-4 rounded-2xl border border-yellow-500/30 bg-gradient-to-b from-yellow-500/5 to-zinc-950 p-5">
+      {diagnosticRequest.status === "completed" && (
+        <section className="space-y-4 rounded-2xl border border-yellow-500/30 bg-gradient-to-b from-yellow-500/5 to-zinc-950 p-5">
           <h3 className="text-lg font-black text-white">Resultado do diagnóstico</h3>
           {!result ? (
             <p className="text-sm text-zinc-400">O resultado ainda não está disponível.</p>
@@ -343,8 +365,8 @@ function DiagnosticRequestPanel({
               {result.final_diagnostic ? <ResultText title="Conclusão" text={result.final_diagnostic} /> : null}
             </div>
           )}
-        </div>
-      ) : null}
+        </section>
+      )}
     </div>
   );
 }

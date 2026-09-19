@@ -129,7 +129,7 @@ export default function FeedbackClient() {
 
         <h1 className="text-4xl font-black mb-2 text-white">💡 Sugestões e Feedbacks</h1>
         <p className="text-zinc-400 mb-8">
-          O LAFF Finder é feito pela comunidade. Tem uma ideia? Achou um erro? Manda pra gente!
+          O FINDER é feito pela comunidade. Tem uma ideia? Achou um erro? Manda pra gente!
           <br />
           <span className="text-xs text-zinc-500">⚠️ Os mais curtidos aparecem primeiro!</span>
         </p>

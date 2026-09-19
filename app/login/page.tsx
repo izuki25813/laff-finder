@@ -6,7 +6,7 @@ import { LoginForm } from "./LoginForm";
 
 export const metadata = {
   title: "Login",
-  description: "Acesse sua conta LAFF Finder",
+  description: "Acesse sua conta FINDER",
 };
 
 export default async function LoginPage({

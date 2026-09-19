@@ -153,7 +153,7 @@ export default async function JogadoresPage({
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-6">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">LAFF Finder</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">FINDER</p>
             <h1 className="mt-2 text-3xl font-black">Jogadores</h1>
           </div>
           <div className="flex flex-wrap gap-3">

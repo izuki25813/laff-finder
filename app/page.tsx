@@ -9,7 +9,18 @@ export default function Home() {
       return false;
     }
 
-    return !window.localStorage.getItem("laff-finder-inscrito");
+    const newKey = window.localStorage.getItem("finder-inscrito");
+    if (newKey) {
+      return false;
+    }
+
+    const oldKey = window.localStorage.getItem("laff-finder-inscrito");
+    if (oldKey) {
+      window.localStorage.setItem("finder-inscrito", oldKey);
+      return false;
+    }
+
+    return true;
   });
   const [clicouNoBotao, setClicouNoBotao] = useState(false);
 
@@ -19,7 +30,7 @@ export default function Home() {
   };
 
   const handleEntrar = () => {
-    window.localStorage.setItem("laff-finder-inscrito", "true");
+    window.localStorage.setItem("finder-inscrito", "true");
     setShowGate(false);
   };
 
@@ -33,7 +44,7 @@ export default function Home() {
               <div className="inline-block bg-yellow-400 text-black font-black text-2xl px-6 py-3 rounded-xl mb-4">
                 IZUKI.X
               </div>
-              <h2 className="text-3xl font-black mb-2">Bem-vindo ao LAFF FINDER</h2>
+              <h2 className="text-3xl font-black mb-2">Bem-vindo ao FINDER</h2>
               <p className="text-zinc-400">
                 Para acessar o banco de jogadores e montar seu time, 
                 <br />
@@ -72,7 +83,7 @@ export default function Home() {
             </p>
 
             <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6">
-              LAFF FINDER
+              FINDER
             </h1>
 
             <p className="max-w-2xl text-lg text-zinc-400 md:text-xl leading-relaxed mb-12">
@@ -148,7 +159,7 @@ export default function Home() {
               <div className="mb-4">
                 <span className="text-3xl mb-2 block">💛</span>
                 <h3 className="text-xl font-black text-white mb-2">
-                  Ajude o LAFF Finder a crescer!
+                  Ajude o FINDER a crescer!
                 </h3>
                 <p className="text-zinc-400 text-sm max-w-lg mx-auto mb-6">
                   Esse projeto é 100% gratuito e feito pela comunidade, para a comunidade. 

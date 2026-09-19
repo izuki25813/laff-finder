@@ -29,7 +29,7 @@ export default function EmBrevePage() {
           ← Voltar ao início
         </Link>
         
-        <p className="text-zinc-600 text-xs mt-8">by Izuuki.x — LAFF Finder</p>
+        <p className="text-zinc-600 text-xs mt-8">by Izuuki.x — FINDER</p>
       </div>
     </main>
   );

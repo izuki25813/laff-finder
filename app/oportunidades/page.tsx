@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Oportunidades | LAFF Finder",
+  title: "Oportunidades | FINDER",
   description: "Acompanhe testes, peneiras e oportunidades da comunidade LAFF.",
 };
 
@@ -122,7 +122,7 @@ export default function OportunidadesPage() {
         </div>
 
         <p className="text-center text-zinc-600 text-xs mt-12 pb-6">
-          by Izuuki.x — LAFF Finder
+          by Izuuki.x — FINDER
         </p>
       </div>
     </main>

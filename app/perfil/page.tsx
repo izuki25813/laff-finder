@@ -7,7 +7,7 @@ import PerfilClient from "./PerfilClient";
 
 export const metadata = {
   title: "Perfil",
-  description: "Seu perfil de usuário no LAFF Finder",
+  description: "Seu perfil de usuário no FINDER",
 };
 
 export default async function PerfilPage() {

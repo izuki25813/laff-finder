@@ -1,7 +1,7 @@
 import FeedbackClient from "./FeedbackClient";
 
 export const metadata = {
-  title: "Feedback e sugestões | LAFF Finder",
+  title: "Feedback e sugestões | FINDER",
   description: "Compartilhe ideias, críticas e sugestões para melhorar a comunidade LAFF.",
 };
 

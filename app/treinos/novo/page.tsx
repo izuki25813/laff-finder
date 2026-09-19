@@ -7,7 +7,7 @@ import TreinosNovoClient from "./TreinosNovoClient";
 
 export const metadata = {
   title: "Novo treino",
-  description: "Criar um treino no LAFF Finder",
+  description: "Criar um treino no FINDER",
 };
 
 export default async function NovoTreinoPage() {

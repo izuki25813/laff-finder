@@ -70,7 +70,7 @@ function mockAdminWithFromQueue(chains: unknown[]) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  process.env.NEXT_PUBLIC_APP_URL = "https://laff.example.com";
+  process.env.NEXT_PUBLIC_APP_URL = "https://finder.example.com";
   mockedResolveProductById.mockResolvedValue({
     ok: true,
     data: { id: PRODUCT_ID, slug: "diagnostico", name: "Diagnóstico", price: 199.9 } as never,

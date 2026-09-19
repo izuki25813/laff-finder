@@ -16,7 +16,7 @@ const mockedCreateCheckout = vi.mocked(createMercadoPagoCheckout);
 const mockedCreateServerClient = vi.mocked(createSupabaseServerClient);
 
 function buildRequest(body: unknown): Request {
-  return new Request("https://laff-finder.example.com/api/checkout/mercado-pago", {
+  return new Request("https://finder.example.com/api/checkout/mercado-pago", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),

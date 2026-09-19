@@ -228,7 +228,7 @@ export default function VagasClient({
     <div className="mx-auto max-w-6xl px-4 py-8 md:px-6">
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">LAFF Finder</p>
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">FINDER</p>
           <h1 className="mt-2 text-3xl font-black text-white">Vagas do time</h1>
         </div>
         <Link href="/meu-time" className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-bold text-white transition hover:border-yellow-500 hover:text-yellow-400">

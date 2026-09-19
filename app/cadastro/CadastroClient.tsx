@@ -70,7 +70,7 @@ export default function CadastroClient() {
       <div className="mx-auto flex min-h-screen max-w-6xl items-center justify-center px-6 py-12">
         <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-950 p-8 shadow-2xl shadow-yellow-500/10">
           <div className="mb-8 text-center">
-            <p className="mb-3 text-xs font-black uppercase tracking-[0.3em] text-yellow-400">LAFF Finder</p>
+            <p className="mb-3 text-xs font-black uppercase tracking-[0.3em] text-yellow-400">FINDER</p>
             <h1 className="text-3xl font-black">Criar conta</h1>
           </div>
 

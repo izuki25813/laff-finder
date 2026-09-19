@@ -1,4 +1,4 @@
-# LAFF Finder
+# FINDER
 
 Aplicativo de comunidade e matchmaking de Free Fire, com MVP funcional, integração com Google Apps Script e evolução para autenticação real com Supabase.
 

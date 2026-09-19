@@ -57,7 +57,7 @@ export default async function TeamApplicationsPage() {
       <div className="mx-auto max-w-6xl px-4 py-10 md:px-6">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">LAFF Finder</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">FINDER</p>
             <h1 className="mt-2 text-3xl font-black">Candidaturas do meu time</h1>
           </div>
 

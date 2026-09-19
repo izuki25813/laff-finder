@@ -347,7 +347,7 @@ export default function ProcurarClient() {
         )}
 
         <p className="text-center text-zinc-600 text-xs mt-12 pb-6">
-          by Izuuki.x — LAFF Finder
+          by Izuuki.x — FINDER
         </p>
       </div>
     </main>

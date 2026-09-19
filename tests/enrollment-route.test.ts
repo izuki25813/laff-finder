@@ -30,7 +30,7 @@ const PENDING_ENROLLMENT = {
 const ACTIVE_ENROLLMENT = { ...PENDING_ENROLLMENT, id: "enrollment-active-1", status: "active" };
 
 function buildEnrollmentRequest(body?: unknown): Request {
-  return new Request("https://laff-finder.example.com/api/mentoria/diagnostico/enrollment", {
+  return new Request("https://finder.example.com/api/mentoria/diagnostico/enrollment", {
     method: "POST",
     headers: body === undefined ? undefined : { "content-type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -38,7 +38,7 @@ function buildEnrollmentRequest(body?: unknown): Request {
 }
 
 function buildCheckoutRequest(body: unknown): Request {
-  return new Request("https://laff-finder.example.com/api/checkout/mercado-pago", {
+  return new Request("https://finder.example.com/api/checkout/mercado-pago", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),

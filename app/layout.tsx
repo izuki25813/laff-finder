@@ -14,17 +14,18 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "LAFF Finder",
-    template: "%s | LAFF Finder",
+    default: "FINDER",
+    template: "%s | FINDER",
   },
   description: "Comunidade de jogadores, mentoria e oportunidades de time no Free Fire.",
   keywords: [
-    "LAFF Finder",
+    "FINDER",
     "Free Fire",
     "time",
     "jogadores",
     "mentoria",
     "comunidade",
+    "LAFF",
     "ZK Esports",
   ],
   metadataBase: new URL("https://laff-finder.com"),
