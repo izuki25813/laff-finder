@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 import { Preference } from "mercadopago";
 
 import { getMercadoPagoClient } from "@/lib/mercado-pago";
-import { resolvePlanById, resolveProductById } from "@/lib/payments";
+import { resolvePlanByIdAdmin, resolveProductByIdAdmin } from "@/lib/payments";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 // Orquestração do checkout Mercado Pago (Fase 10.4): cria/recupera um
@@ -110,9 +110,9 @@ export async function createMercadoPagoCheckout(userId: string, enrollmentId: st
   }
 
   const resolved = enrollment.product_id
-    ? await resolveProductById(enrollment.product_id)
+    ? await resolveProductByIdAdmin(enrollment.product_id)
     : enrollment.plan_id
-      ? await resolvePlanById(enrollment.plan_id)
+      ? await resolvePlanByIdAdmin(enrollment.plan_id)
       : null;
 
   if (!resolved || !resolved.ok) {

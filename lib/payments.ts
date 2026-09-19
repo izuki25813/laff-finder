@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 // Camada de LEITURA/RESOLUÇÃO comercial (Fase 10.1). Não existe aqui
 // checkout, pagamento, gateway, SDK de pagamento ou cliente service role.
@@ -140,6 +141,62 @@ export async function resolvePlanById(id: string): Promise<ResolveResult<Mentori
   }
 
   const { data, error } = await supabase
+    .from("mentoring_plans")
+    .select("id, slug, name, description, price, currency, active, tier, modality, sessions_included, duration_days")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) {
+    return { ok: false, error: "not_found" };
+  }
+
+  if (!data.active) {
+    return { ok: false, error: "inactive" };
+  }
+
+  return { ok: true, data: data as MentoringPlanRow };
+}
+
+/**
+ * Versão administrativa (service role) que bypassa RLS.
+ * Usada pelo checkout Mercado Pago que já opera com admin client.
+ */
+export async function resolveProductByIdAdmin(id: string): Promise<ResolveResult<MentoringProductRow>> {
+  const admin = createSupabaseAdminClient();
+
+  if (!admin) {
+    return { ok: false, error: "unavailable" };
+  }
+
+  const { data, error } = await admin
+    .from("mentoring_products")
+    .select("id, slug, name, description, price, currency, active, product_type")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) {
+    return { ok: false, error: "not_found" };
+  }
+
+  if (!data.active) {
+    return { ok: false, error: "inactive" };
+  }
+
+  return { ok: true, data: data as MentoringProductRow };
+}
+
+/**
+ * Versão administrativa (service role) que bypassa RLS.
+ * Usada pelo checkout Mercado Pago que já opera com admin client.
+ */
+export async function resolvePlanByIdAdmin(id: string): Promise<ResolveResult<MentoringPlanRow>> {
+  const admin = createSupabaseAdminClient();
+
+  if (!admin) {
+    return { ok: false, error: "unavailable" };
+  }
+
+  const { data, error } = await admin
     .from("mentoring_plans")
     .select("id, slug, name, description, price, currency, active, tier, modality, sessions_included, duration_days")
     .eq("id", id)

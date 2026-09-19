@@ -21,6 +21,8 @@ vi.mock("@/lib/mercado-pago", () => ({
 vi.mock("@/lib/payments", () => ({
   resolveProductById: vi.fn(),
   resolvePlanById: vi.fn(),
+  resolveProductByIdAdmin: vi.fn(),
+  resolvePlanByIdAdmin: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/admin", () => ({
@@ -28,11 +30,12 @@ vi.mock("@/lib/supabase/admin", () => ({
 }));
 
 import { createMercadoPagoCheckout } from "@/lib/mercado-pago-checkout";
-import { resolveProductById, resolvePlanById } from "@/lib/payments";
+import { resolveProductById, resolveProductByIdAdmin, resolvePlanByIdAdmin } from "@/lib/payments";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const mockedResolveProductById = vi.mocked(resolveProductById);
-const mockedResolvePlanById = vi.mocked(resolvePlanById);
+const mockedResolveProductByIdAdmin = vi.mocked(resolveProductByIdAdmin);
+const mockedResolvePlanByIdAdmin = vi.mocked(resolvePlanByIdAdmin);
 const mockedCreateAdminClient = vi.mocked(createSupabaseAdminClient);
 
 const USER_ID = "user-1";
@@ -65,6 +68,14 @@ beforeEach(() => {
     ok: true,
     data: { id: PRODUCT_ID, slug: "diagnostico", name: "Diagnóstico", price: 199.9 } as never,
   });
+  mockedResolveProductByIdAdmin.mockResolvedValue({
+    ok: true,
+    data: { id: PRODUCT_ID, slug: "diagnostico", name: "Diagnóstico", price: 199.9 } as never,
+  });
+  mockedResolvePlanByIdAdmin.mockResolvedValue({
+    ok: true,
+    data: { id: "plan-1", slug: "plano-1", name: "Plano", price: 299.9 } as never,
+  });
 });
 
 describe("createMercadoPagoCheckout — autorização e estado do enrollment", () => {
@@ -80,7 +91,17 @@ describe("createMercadoPagoCheckout — autorização e estado do enrollment", (
 
     const result = await createMercadoPagoCheckout(USER_ID, ENROLLMENT_ID);
 
-    expect(result).toEqual({ success: false, error: "not_found", message: expect.any(String) });
+    expect(result).toEqual({
+      success: false,
+      error: "not_found",
+      message: expect.any(String),
+      details: expect.objectContaining({
+        enrollmentFound: true,
+        enrollmentStudentId: "outro-usuario",
+        checkoutUserId: USER_ID,
+        requestedEnrollmentId: ENROLLMENT_ID,
+      }),
+    });
   });
 
   it("enrollment inexistente não pode ser usado", async () => {
@@ -88,7 +109,17 @@ describe("createMercadoPagoCheckout — autorização e estado do enrollment", (
 
     const result = await createMercadoPagoCheckout(USER_ID, ENROLLMENT_ID);
 
-    expect(result).toEqual({ success: false, error: "not_found", message: expect.any(String) });
+    expect(result).toEqual({
+      success: false,
+      error: "not_found",
+      message: expect.any(String),
+      details: expect.objectContaining({
+        enrollmentFound: false,
+        enrollmentStudentId: null,
+        checkoutUserId: USER_ID,
+        requestedEnrollmentId: ENROLLMENT_ID,
+      }),
+    });
   });
 
   it("enrollment que não está pending não gera checkout", async () => {
@@ -103,7 +134,7 @@ describe("createMercadoPagoCheckout — autorização e estado do enrollment", (
 describe("createMercadoPagoCheckout — produto/plano", () => {
   it("produto inativo/inválido não gera checkout", async () => {
     mockAdminWithEnrollment(pendingEnrollment());
-    mockedResolveProductById.mockResolvedValue({ ok: false, error: "inactive" });
+    mockedResolveProductByIdAdmin.mockResolvedValue({ ok: false, error: "inactive" });
 
     const result = await createMercadoPagoCheckout(USER_ID, ENROLLMENT_ID);
 
@@ -112,7 +143,7 @@ describe("createMercadoPagoCheckout — produto/plano", () => {
 
   it("produto sem preço válido não gera checkout", async () => {
     mockAdminWithEnrollment(pendingEnrollment());
-    mockedResolveProductById.mockResolvedValue({
+    mockedResolveProductByIdAdmin.mockResolvedValue({
       ok: true,
       data: { id: PRODUCT_ID, slug: "diagnostico", name: "Diagnóstico", price: null } as never,
     });
@@ -122,13 +153,13 @@ describe("createMercadoPagoCheckout — produto/plano", () => {
     expect(result).toEqual({ success: false, error: "product_unavailable", message: expect.any(String) });
   });
 
-  it("usa resolvePlanById quando o enrollment referencia um plano em vez de um produto", async () => {
+  it("usa resolvePlanByIdAdmin quando o enrollment referencia um plano em vez de um produto", async () => {
     mockAdminWithEnrollment(pendingEnrollment({ product_id: null, plan_id: "plan-1" }), [
       makeQueryChain({ data: [], error: null }),
       makeQueryChain({ data: { id: PAYMENT_ID, amount: 299, gateway_preference_id: null }, error: null }),
       makeQueryChain({ data: null, error: null }),
     ]);
-    mockedResolvePlanById.mockResolvedValue({
+    mockedResolvePlanByIdAdmin.mockResolvedValue({
       ok: true,
       data: { id: "plan-1", slug: "plano-x", name: "Plano X", price: 299 } as never,
     });
@@ -136,7 +167,7 @@ describe("createMercadoPagoCheckout — produto/plano", () => {
 
     const result = await createMercadoPagoCheckout(USER_ID, ENROLLMENT_ID);
 
-    expect(mockedResolvePlanById).toHaveBeenCalledWith("plan-1");
+    expect(mockedResolvePlanByIdAdmin).toHaveBeenCalledWith("plan-1");
     expect(result.success).toBe(true);
   });
 });
