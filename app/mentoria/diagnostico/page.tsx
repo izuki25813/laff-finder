@@ -9,6 +9,7 @@ import {
 } from "@/lib/diagnostics";
 import { getMentorshipProductBySlug } from "@/lib/mentorship";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getServerSession } from "@/lib/auth";
 
 export const metadata = {
   title: "Diagnóstico | FINDER",
@@ -45,9 +46,8 @@ export default async function DiagnosticoPage({
   const product = getMentorshipProductBySlug("diagnostico");
   const supabase = await createSupabaseServerClient();
 
-  const {
-    data: { user },
-  } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+  const session = await getServerSession();
+  const user = session?.user ?? null;
 
   let activeEnrollment: { id: string } | null = null;
   let pendingEnrollment: { id: string } | null = null;
